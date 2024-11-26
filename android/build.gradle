@@ -1,0 +1,36 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+
+        maven {
+            //url 'https://repo.maven.apache.org/maven2'
+            url 'https://jitpack.io'
+            content {
+                excludeGroup "com.google.protobuf"
+            }
+        }
+    }
+}
+
+rootProject.buildDir = '../build'
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:4.1.0"
+    }
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

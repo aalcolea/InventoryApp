@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "838261028996",
+    "project_id": "beauteapp-a78cb",
+    "storage_bucket": "beauteapp-a78cb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:838261028996:android:d646cf2f4e886c21b76ad1",
+        "android_client_info": {
+          "package_name": "com.example.beaute_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgE43MrFpFFuuCwz-Pilwqr1nyhVrTBuU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

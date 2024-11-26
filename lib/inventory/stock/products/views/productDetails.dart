@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:ffi';
-import 'package:beaute_app/inventory/stock/products/styles/productFormStyles.dart';
-import 'package:beaute_app/inventory/stock/utils/listenerCatBox.dart';
-import 'package:beaute_app/regEx.dart';
+import 'package:inventory_app/inventory/stock/products/styles/productFormStyles.dart';
+import 'package:inventory_app/inventory/stock/utils/listenerCatBox.dart';
+import 'package:inventory_app/regEx.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';

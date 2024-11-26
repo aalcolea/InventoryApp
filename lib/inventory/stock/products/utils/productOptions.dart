@@ -1,7 +1,7 @@
 import 'dart:ffi';
-import 'package:beaute_app/helpers/themes/colors.dart';
-import 'package:beaute_app/inventory/stock/products/utils/PopUpTabs/deleteProductDialog.dart';
-import 'package:beaute_app/inventory/stock/products/utils/PopUpTabs/modifyStockDialog.dart';
+import 'package:inventory_app/helpers/themes/colors.dart';
+import 'package:inventory_app/inventory/stock/products/utils/PopUpTabs/deleteProductDialog.dart';
+import 'package:inventory_app/inventory/stock/products/utils/PopUpTabs/modifyStockDialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../helpers/utils/showToast.dart';

@@ -1,6 +1,6 @@
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/listenerOnDateChanged.dart';
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/listenerRemoverOL.dart';
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/ticketOptions.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/listenerOnDateChanged.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/listenerRemoverOL.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/ticketOptions.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../kboardVisibilityManager.dart';

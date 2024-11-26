@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:beaute_app/inventory/sellpoint/cart/services/cartService.dart';
-import 'package:beaute_app/inventory/sellpoint/cart/styles/cartStyles.dart';
-import 'package:beaute_app/inventory/print/printService.dart';
-import 'package:beaute_app/inventory/print/printConnections.dart';
+import 'package:inventory_app/inventory/sellpoint/cart/services/cartService.dart';
+import 'package:inventory_app/inventory/sellpoint/cart/styles/cartStyles.dart';
+import 'package:inventory_app/inventory/print/printService.dart';
+import 'package:inventory_app/inventory/print/printConnections.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';

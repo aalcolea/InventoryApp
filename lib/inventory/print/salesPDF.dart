@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'dart:io';
-import 'package:beaute_app/inventory/sellpoint/tickets/services/salesServices.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/services/salesServices.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';

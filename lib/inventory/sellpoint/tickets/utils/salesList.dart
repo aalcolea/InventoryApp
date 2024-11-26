@@ -1,8 +1,8 @@
 import 'dart:io';
 
-import 'package:beaute_app/inventory/print/printSalesService.dart';
-import 'package:beaute_app/inventory/print/printService.dart';
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
+import 'package:inventory_app/inventory/print/printSalesService.dart';
+import 'package:inventory_app/inventory/print/printService.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

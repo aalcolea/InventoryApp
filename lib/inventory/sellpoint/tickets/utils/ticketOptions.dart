@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:beaute_app/inventory/print/printService.dart';
+import 'package:inventory_app/inventory/print/printService.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../helpers/themes/colors.dart';

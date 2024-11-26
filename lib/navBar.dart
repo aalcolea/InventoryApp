@@ -1,8 +1,8 @@
 import 'dart:io';
-import 'package:beaute_app/helpers/themes/colors.dart';
-import 'package:beaute_app/inventory/admin.dart';
-import 'package:beaute_app/inventory/listenerPrintService.dart';
-import 'package:beaute_app/inventory/print/printConnections.dart';
+import 'package:inventory_app/helpers/themes/colors.dart';
+import 'package:inventory_app/inventory/admin.dart';
+import 'package:inventory_app/inventory/listenerPrintService.dart';
+import 'package:inventory_app/inventory/print/printConnections.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -126,41 +126,13 @@ class _navBarState extends State<navBar> {
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(SessionManager.instance.Nombre == 'Dulce' ? 'Nombre Asistente' : SessionManager.instance.Nombre,
+                                          Text(SessionManager.instance.Nombre == 'Asistente' ? 'Nombre Asistente' : SessionManager.instance.Nombre,
                                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.width*0.05, color: AppColors3.primaryColor)),
                                           Text('Nombre de tu empresa', style: TextStyle(color: AppColors3.primaryColor.withOpacity(0.8)),)
                                         ],
                                       )
                                   )
                                 ]
-                            ),
-                          ),
-                          InkWell(
-                            onTap: widget.currentScreen == 'agenda' ? Navigator.of(context).pop : (){
-                              isConecct ==  true ? printService.disconnect(context) : null;
-                              Navigator.of(context).pushAndRemoveUntil(
-                                CupertinoPageRoute(
-                                  builder: (context) => adminInv(docLog: widget.isDoctorLog),
-                                ),
-                                    (Route<dynamic> route) => false,
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.only(left: 20),
-                              width: MediaQuery.of(context).size.width,
-                              height: widget.currentScreen == 'agenda' ? MediaQuery.of(context).size.height * 0.07 : MediaQuery.of(context).size.height * 0.06,
-                              alignment: Alignment.centerLeft,
-                              decoration: BoxDecoration(
-                                border: widget.currentScreen == 'agenda' ? Border.all(color: AppColors3.primaryColor) : const Border(left: BorderSide.none, top: BorderSide(color: AppColors3.primaryColor)),
-                                color: widget.currentScreen == 'agenda' ? AppColors3.primaryColor : Colors.transparent,
-                                boxShadow: widget.currentScreen == 'agenda' ? [
-                                  BoxShadow(
-                                    color: Colors.black54,
-                                    offset: Offset(0, MediaQuery.of(context).size.width * 0.001),
-                                    blurRadius: 5,
-                                  )
-                                ] : null,
-                              ),
                             ),
                           ),
                           InkWell(

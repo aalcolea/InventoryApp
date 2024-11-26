@@ -1,10 +1,10 @@
 import 'dart:ui';
-import 'package:beaute_app/inventory/sellpoint/tickets/services/salesServices.dart';
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/listenerOnDateChanged.dart';
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/listenerRemoverOL.dart';
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/sales/calendarSales.dart';
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
-import 'package:beaute_app/inventory/sellpoint/tickets/utils/ticketsList.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/services/salesServices.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/listenerOnDateChanged.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/listenerRemoverOL.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/calendarSales.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/ticketsList.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

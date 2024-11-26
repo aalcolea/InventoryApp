@@ -1,8 +1,8 @@
 import 'dart:ui';
 
-import 'package:beaute_app/inventory/stock/utils/listenerBlurr.dart';
-import 'package:beaute_app/inventory/stock/products/services/productsService.dart';
-import 'package:beaute_app/inventory/stock/products/views/productDetails.dart';
+import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
+import 'package:inventory_app/inventory/stock/products/services/productsService.dart';
+import 'package:inventory_app/inventory/stock/products/views/productDetails.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

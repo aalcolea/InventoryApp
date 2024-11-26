@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:beaute_app/inventory/stock/utils/listenerBlurr.dart';
+import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
 
 import '../../../themes/colors.dart';
 import '../forms/categoryForm.dart';

@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:beaute_app/helpers/themes/colors.dart';
-import 'package:beaute_app/inventory/sellpoint/cart/services/cartService.dart';
-import 'package:beaute_app/helpers/views/login.dart';
+import 'package:inventory_app/helpers/themes/colors.dart';
+import 'package:inventory_app/inventory/sellpoint/cart/services/cartService.dart';
+import 'package:inventory_app/helpers/views/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';

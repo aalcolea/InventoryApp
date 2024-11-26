@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:beaute_app/inventory/stock/categories/forms/categoryBox.dart';
-import 'package:beaute_app/inventory/stock/products/styles/productFormStyles.dart';
+import 'package:inventory_app/inventory/stock/categories/forms/categoryBox.dart';
+import 'package:inventory_app/inventory/stock/products/styles/productFormStyles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';

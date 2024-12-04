@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
 
 import '../../../themes/colors.dart';
@@ -9,14 +10,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:http/http.dart' as http;
+
+import '../forms/editCategoryForm.dart';
 class Categories extends StatefulWidget {
   final GlobalKey<ProductsState> productsKey;
   final void Function(
       bool,
-  ) onHideBtnsBottom;
+      ) onHideBtnsBottom;
   final void Function(
       bool,
-  ) onShowBlur;
+      ) onShowBlur;
   final Listenerblurr listenerblurr;
 
   const Categories({super.key, required this.onHideBtnsBottom, required this.onShowBlur, required this.productsKey, required this.listenerblurr});
@@ -39,6 +42,9 @@ class _CategoriesState extends State<Categories> {
   bool isSelecting = false;
   final String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/categories'; //'http://192.168.101.140:8080/api/categories';
   bool hasMoreItems = true;
+  String categoryName = '';
+  String? categoryImage;
+  bool isLoading = false;
 
   void checkKeyboardVisibility() {
     keyboardVisibilitySubscription =
@@ -81,6 +87,7 @@ class _CategoriesState extends State<Categories> {
   @override
   void initState() {
     super.initState();
+    isLoading = true;
     keyboardVisibilityController = KeyboardVisibilityController();
     checkKeyboardVisibility();
     loadFirstItems();
@@ -113,6 +120,7 @@ class _CategoriesState extends State<Categories> {
       setState(() {
         items = fetchedItems;
         offset += limit;
+        isLoading = false;
       });
       _ensureAddCatAtTheEnd();
     }catch(e){
@@ -124,6 +132,7 @@ class _CategoriesState extends State<Categories> {
     try{
       List<Map<String, dynamic>> fetchedItems = await fetchItems(limit: limit, offset: offset);
       setState(() {
+        isLoading = false;
         // Only add new items that don't already exist in the items list
         for (var newItem in fetchedItems) {
           bool exists = items.any((item) => item['id'] == newItem['id']);
@@ -197,7 +206,7 @@ class _CategoriesState extends State<Categories> {
   @override
   Widget build(BuildContext context) {
     int itemsPerPage = 6;
-    return Container(
+    return isLoading == false ? Container(
       color: AppColors.bgColor,
       child: Column(
         children: [
@@ -207,7 +216,7 @@ class _CategoriesState extends State<Categories> {
               ///ENVOLVER EN NOTIFICATION DECIA GPT, AUN EN PRUEBAS
               child: NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification scrollInfo) {
-                  if (scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent && hasMoreItems) {
+                  if (scrollInfo is ScrollEndNotification && hasMoreItems && scrollInfo.metrics.extentAfter == 0) {
                     loadItems();
                   }
                   return true;
@@ -247,7 +256,11 @@ class _CategoriesState extends State<Categories> {
                                   context: context,
                                   barrierColor: Colors.transparent,
                                   builder: (BuildContext context) {
-                                    return const CategoryForm();
+                                    return CategoryForm(
+                                        onLoad: (load) {
+                                          isLoading = load;
+                                        }
+                                    );
                                   },
                                 ).then((_){
                                   loadFirstItems();
@@ -321,6 +334,9 @@ class _CategoriesState extends State<Categories> {
                             },
                             onLongPress: () {
                               toggleSelection(item['id'].toString());
+                              categoryName = item['category'];
+                              categoryImage = item['image'];
+                              print(categoryImage);
                             },
                             child: Card(
                                 margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.07),
@@ -352,13 +368,14 @@ class _CategoriesState extends State<Categories> {
                                           height: MediaQuery.of(context).size.width * 0.35,
                                           width: MediaQuery.of(context).size.width * 0.5,
                                           child: Stack(
+                                            fit: StackFit.expand,
                                             alignment: Alignment.center,
                                             children: [
                                               ClipRRect(
                                                 borderRadius: BorderRadius.circular(10),
                                                 child: Image.network(
                                                   item['image'],
-                                                  fit: BoxFit.contain,
+                                                  fit: BoxFit.fitWidth,
                                                   loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
                                                     if (loadingProgress == null) {
                                                       return child;
@@ -374,15 +391,15 @@ class _CategoriesState extends State<Categories> {
                                                   },
                                                   errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
                                                     return Container(
-                                                      color: Colors.transparent,
-                                                      child: Column(
-                                                        children: [
-                                                          Flexible(
-                                                            child: Image.asset('assets/imgLog/test2.jpeg',
-                                                            fit: BoxFit.fill,),),
-                                                          const Text('Imagen no disponible'),
-                                                        ],
-                                                      )
+                                                        color: Colors.transparent,
+                                                        child: Column(
+                                                          children: [
+                                                            Flexible(
+                                                              child: Image.asset('assets/imgLog/test2.jpeg',
+                                                                fit: BoxFit.fill,),),
+                                                            const Text('Imagen no disponible'),
+                                                          ],
+                                                        )
                                                     );
                                                   },
                                                 ),
@@ -439,40 +456,76 @@ class _CategoriesState extends State<Categories> {
             child: Container(
               color: Colors.transparent,
               height: MediaQuery.of(context).size.height * 0.05,
-              padding: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.04, bottom: MediaQuery.of(context).size.width * 0.01),
+              padding: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.04, bottom: MediaQuery.of(context).size.width * 0.01, left: MediaQuery.of(context).size.width * 0.04),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  FloatingActionButton(
+                  selectedCategories.length == 1 ? FloatingActionButton(
                     onPressed: () {
-                      setState(() {
-                        selectedCategories.clear();
-                        isSelecting = false;
+                      widget.onShowBlur(true);
+                      showDialog(
+                        context: context,
+                        barrierColor: Colors.transparent,
+                        builder: (BuildContext context) {
+                          return EditCategoryForm(
+                            catID: int.parse(selectedCategories[0]),
+                            catName: categoryName,
+                            onLoad: (load) {
+                              isLoading = load;
+                            },
+                            catImage: categoryImage,
+                          );
+                        },
+                      ).then((_){
+                        loadFirstItems();
+                        widget.onShowBlur(false);
+                        setState(() {
+                          selectedCategories.clear();
+                          isSelecting = false;
+                        });
                       });
                     },
                     backgroundColor: AppColors.whiteColor,
                     heroTag: null,
-                    child: const Icon(Icons.cancel, color: AppColors.primaryColor),
-                  ),
-                  SizedBox(width: MediaQuery.of(context).size.width * 0.03),
-                  FloatingActionButton(
-                    onPressed: () {
-                      setState(() {
-                        List<String> categoriesToDelete = List.from(selectedCategories);
-                        for (String categoryId in categoriesToDelete) {
-                          deleteItem(categoryId);
-                        }
-                      });
-                    },
-                    backgroundColor: AppColors.whiteColor,
-                    heroTag: null,
-                    child: const Icon(Icons.delete, color: AppColors.redDelete,),
-                  ),
+                    child: const Icon(Icons.edit, color: AppColors.primaryColor),
+                  ) : Container(),
+                  Row(
+                    children: [
+                      FloatingActionButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedCategories.clear();
+                            isSelecting = false;
+                          });
+                        },
+                        backgroundColor: AppColors.whiteColor,
+                        heroTag: null,
+                        child: const Icon(Icons.cancel, color: AppColors.primaryColor),
+                      ),
+                      SizedBox(width: MediaQuery.of(context).size.width * 0.03),
+                      FloatingActionButton(
+                        onPressed: () async {
+                          isLoading = true;
+                          List<String> categoriesToDelete = List.from(selectedCategories);
+                          for (String categoryId in categoriesToDelete) {
+                            await deleteItem(categoryId);
+                          }
+                        },
+                        backgroundColor: AppColors.whiteColor,
+                        heroTag: null,
+                        child: const Icon(Icons.delete, color: AppColors.redDelete,),
+                      ),
+                    ],
+                  )
                 ],
               ),
             ),
           )
         ],
+      ),
+    ) : const Center(
+      child: CircularProgressIndicator(
+        color: AppColors.primaryColor,
       ),
     );
   }

@@ -289,8 +289,15 @@ class _EditCategoryFormState extends State<EditCategoryForm> {
                     ? const CircularProgressIndicator()
                     : ElevatedButton(
                     onPressed: () async {
+                      setState(() {
+                        isLoading = true;
+                      });
+                      await categoryService.updateCategoryInfo(context: context, idCategory: widget.catID, name: nameController.text, image: _selectedImage).then((_){
+                        setState(() {
+                          isLoading = false;
+                        });
+                      });
                       widget.onLoad(true);
-                      await categoryService.updateCategoryInfo(context: context, idCategory: widget.catID, name: nameController.text, image: _selectedImage);
                     },
                     style: ElevatedButton.styleFrom(
                       splashFactory: InkRipple.splashFactory,

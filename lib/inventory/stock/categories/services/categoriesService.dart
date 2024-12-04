@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image/image.dart' as img;
 
 import '../../../themes/colors.dart';
 import '../../../../helpers/utils/showToast.dart';
@@ -11,6 +12,42 @@ import '../../../../helpers/utils/toastWidget.dart';
 
 class CategoryService {
   final String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/categories'; //'http://192.168.101.140:8080/api/categories';//
+
+  Future<File?> processImage(File imageFile) async {
+    try {
+      // Leer la imagen como bytes
+      final bytes = await imageFile.readAsBytes();
+
+      // Decodificar la imagen usando la librería `image`
+      final decodedImage = img.decodeImage(bytes);
+      if (decodedImage == null) {
+        print("Error: No se pudo decodificar la imagen.");
+        return null;
+      }
+
+      // Si el tamaño del archivo es mayor a 4096 KB, reducimos la calidad
+      const maxSizeInBytes = 2048 * 512; // 4 MB
+      if (imageFile.lengthSync() > maxSizeInBytes) {
+        print("Reduciendo tamaño de la imagen...");
+        // Reducir la resolución y calidad de la imagen
+        final resizedImage = img.copyResize(decodedImage, width: 800); // Ajusta el ancho según necesites
+        final compressedImage = img.encodeJpg(resizedImage, quality: 85);
+
+        // Guardar la imagen procesada en un archivo temporal
+        final tempDir = Directory.systemTemp;
+        final tempFile = File('${tempDir.path}/processed_image.jpg');
+        await tempFile.writeAsBytes(compressedImage);
+        print("Imagen procesada guardada en: ${tempFile.path}");
+        return tempFile;
+      } else {
+        print("La imagen es menor a 2 MB, no se requiere procesamiento.");
+        return imageFile;
+      }
+    } catch (e) {
+      print("Error al procesar la imagen: $e");
+      return null;
+    }
+  }
 
   Future<bool> updateCategoryInfo({required context, required int idCategory, required String name, required File? image}) async{
     final url = Uri.parse(baseURL + '/$idCategory');
@@ -30,15 +67,30 @@ class CategoryService {
     try{
       final request = http.MultipartRequest('POST', url);
       request.headers['X-HTTP-Method-Override'] = 'PUT';
+      request.headers['Content-Type'] = 'multipart/form-data';
       request.headers['Authorization'] = 'Bearer $token';
 
       request.fields['nombre'] = name;
-      if (image != null) {
-        request.files.add(await http.MultipartFile.fromPath('foto', image.path));
+      if (image != null && await image.exists()) {
+        print("Procesando imagen...");
+        final processedImage = await processImage(image);
+        if (processedImage != null && await processedImage.exists()) {
+          request.files.add(await http.MultipartFile.fromPath(
+            'foto',
+            processedImage.path,
+          ));
+          print("Imagen procesada y agregada a la solicitud.");
+        } else {
+          print("Error: No se pudo procesar la imagen.");
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Error al procesar la imagen seleccionada.")),
+          );
+          return false;
+        }
       }
       final response = await request.send();
       final responseBody = await http.Response.fromStream(response);
-      print(responseBody.body);
+      print("Cuerpo de la respuesta: ${responseBody.body}");
 
       if(response.statusCode == 200){
         Navigator.of(context).pop(true);

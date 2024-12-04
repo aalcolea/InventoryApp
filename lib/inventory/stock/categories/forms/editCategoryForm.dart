@@ -6,20 +6,27 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:inventory_app/inventory/stock/categories/services/categoriesService.dart';
 
 import '../../../themes/colors.dart';
 
-class CategoryForm extends StatefulWidget {
+class EditCategoryForm extends StatefulWidget {
 
+  final int catID;
+  final String catName;
+  final String? catImage;
   final Function(bool) onLoad;
 
-  const CategoryForm({Key? key, required this.onLoad}) : super(key: key);
+  const EditCategoryForm({Key? key, required this.catID, required this.catName, required this.onLoad, required this.catImage}) : super(key: key);
 
   @override
-  _CategoryFormState createState() => _CategoryFormState();
+  _EditCategoryFormState createState() => _EditCategoryFormState();
 }
 
-class _CategoryFormState extends State<CategoryForm> {
+class _EditCategoryFormState extends State<EditCategoryForm> {
+
+  final CategoryService categoryService = CategoryService();
+
   TextEditingController nameController = TextEditingController();
   File? _selectedImage;
   final picker = ImagePicker();
@@ -49,87 +56,10 @@ class _CategoryFormState extends State<CategoryForm> {
     }
   }
 
-  Future<void> createCategory() async {
-    if (nameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Por favor ingresa el nombre de la categoría")),
-      );
-      return;
-    }
-
-    setState(() {
-      isLoading = true;
-    });
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    const baseUrl = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/categories';
-    String? token = prefs.getString('jwt_token');
-
-    try {
-      final request = http.MultipartRequest('POST', Uri.parse(baseUrl));
-      request.headers['Authorization'] = 'Bearer $token';
-
-      request.fields['nombre'] = nameController.text;
-
-      if (_selectedImage != null) {
-        request.files.add(await http.MultipartFile.fromPath('foto', _selectedImage!.path));
-      }
-
-      final response = await request.send();
-
-      final responseBody = await http.Response.fromStream(response);
-
-      if (response.statusCode == 201) {
-        if(mounted){
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).size.width * 0.08,
-                  bottom: MediaQuery.of(context).size.width * 0.08,
-                  left: MediaQuery.of(context).size.width * 0.02,
-                ),
-                content: Text('Categoria creada exitosamente',
-                  style: TextStyle(
-                      color: AppColors.whiteColor,
-                      fontSize: MediaQuery.of(context).size.width * 0.045),)),
-          );
-          Navigator.of(context).pop(true);
-        }
-      }else{
-        String errorMessage = 'Error al crear la categoria';
-        try {
-          final responseData = jsonDecode(responseBody.body);
-          errorMessage = responseData['message'] ?? errorMessage;
-        } catch (e) {
-          errorMessage = 'Error inesperado: ${responseBody.body}';
-        }
-        if(mounted){
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).size.width * 0.08,
-                  bottom: MediaQuery.of(context).size.width * 0.08,
-                  left: MediaQuery.of(context).size.width * 0.02,
-                ),
-                content: Text('Revise conexión a internet e intente de nuevo',
-                  style: TextStyle(
-                      color: AppColors.whiteColor,
-                      fontSize: MediaQuery.of(context).size.width * 0.045),)),
-          );
-        }
-      }
-      SnackBar(content: Text("asdasd"));
-    } catch (e) {
-      SnackBar(content: Text("Fallo"));
-      print("Errdasdor: $e");
-
-
-      print('errr inesperado ${e}');
-    } finally {
-      setState(() {
-        isLoading = false;
-      });
-    }
+  @override
+  void initState() {
+    nameController.text = widget.catName;
+    super.initState();
   }
 
   @override
@@ -164,7 +94,7 @@ class _CategoryFormState extends State<CategoryForm> {
                     Container(
                       padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.02),
                       child: Text(
-                        'Crear Categoría',
+                        'Editar Categoría',
                         style: TextStyle(
                           color: AppColors.primaryColor,
                           fontSize: MediaQuery.of(context).size.width * 0.075,
@@ -216,10 +146,6 @@ class _CategoryFormState extends State<CategoryForm> {
                     decoration: InputDecoration(
                       contentPadding: EdgeInsets.symmetric(
                           horizontal: MediaQuery.of(context).size.width * 0.03),
-                      hintText: 'Nombre de la categoría...',
-                      hintStyle: TextStyle(
-                        color: AppColors.primaryColor.withOpacity(0.5),
-                      ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
                         borderRadius: BorderRadius.circular(10.0),
@@ -266,10 +192,7 @@ class _CategoryFormState extends State<CategoryForm> {
                       width: double.infinity,
                       height: MediaQuery.of(context).size.width * 0.4,
                       child: ElevatedButton(
-                          onPressed: () {
-                            _requestPermission();
-                            print(_selectedImage);
-                          },
+                          onPressed: _requestPermission,
                           style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.whiteColor,
                               side: const BorderSide(color: AppColors.primaryColor, width: 1.5),
@@ -288,7 +211,7 @@ class _CategoryFormState extends State<CategoryForm> {
                           )
                       ),
                     )
-                        : Column(
+                        : widget.catImage == 'https://example.com/default.jpg' ? Column(
                       children: [
                         SizedBox(
                           width: double.infinity,
@@ -325,6 +248,39 @@ class _CategoryFormState extends State<CategoryForm> {
                           ),
                         )
                       ],
+                    ) : SizedBox(
+                      width: double.infinity,
+                      height: MediaQuery.of(context).size.width * 0.4,
+                      child: ElevatedButton(
+                        onPressed: _requestPermission,
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.whiteColor,
+                            side: const BorderSide(color: AppColors.primaryColor, width: 1.5),
+                            shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.only(
+                                    bottomRight: Radius.circular(10),
+                                    bottomLeft: Radius.circular(10)
+                                )
+                            )
+                        ),
+                        child: Image.network(
+                          widget.catImage.toString(),
+                          fit: BoxFit.contain,
+                          loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                            if (loadingProgress == null) {
+                              return child;
+                            } else {
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  value: loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                      : null,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ),
                     )
                   ],
                 ),
@@ -333,8 +289,8 @@ class _CategoryFormState extends State<CategoryForm> {
                     ? const CircularProgressIndicator()
                     : ElevatedButton(
                     onPressed: () async {
-                      await createCategory();
                       widget.onLoad(true);
+                      await categoryService.updateCategoryInfo(context: context, idCategory: widget.catID, name: nameController.text, image: _selectedImage);
                     },
                     style: ElevatedButton.styleFrom(
                       splashFactory: InkRipple.splashFactory,
@@ -354,7 +310,7 @@ class _CategoryFormState extends State<CategoryForm> {
                       backgroundColor: AppColors.whiteColor,
                     ),
                     child: Text(
-                        'Crear categoría',
+                        'Editar categoría',
                         style: TextStyle(
                           fontSize:
                           MediaQuery.of(context).size.width * 0.055,

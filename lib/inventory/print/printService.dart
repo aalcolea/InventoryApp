@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'dart:typed_data';
 import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils/esc_pos_utils.dart';
@@ -17,7 +17,7 @@ class PrintService2 {
       print("Error: No se encontró la característica para imprimir.");
       return;
     }
-
+    await centrar();
     await printImageBW(imagePath);
     await printText(carrito);
     await Future.delayed(const Duration(milliseconds: 500));
@@ -77,15 +77,15 @@ class PrintService2 {
     bytes += utf8.encode('\x1B\x45\x00');
     bytes += utf8.encode('\x1B\x61\x00');
     bytes += utf8.encode(lugar);
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     bytes += utf8.encode('Fecha exp: ${DateFormat.yMd().format(DateTime.now())} ${DateFormat.jm().format(DateTime.now())}\n');
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     bytes += utf8.encode('\n');
     bytes += utf8.encode('Cliente #\n');
     bytes += utf8.encode('\n');
 
     bytes += utf8.encode('CANT |     PROD     |  IMPORTE\n');
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     bytes += utf8.encode('--------------------------------\n');
 
     for (var item in carrito) {
@@ -126,7 +126,7 @@ class PrintService2 {
 
 
     bytes += utf8.encode('--------------------------------\n');
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     int totalLength = totalText.length + amountText.length;
     int spacesToAdd = lineWidth - totalLength;
     String padding = ' ' * spacesToAdd.clamp(0, lineWidth);
@@ -145,8 +145,15 @@ class PrintService2 {
     bytes += utf8.encode('\x1B\x45\x00');
     bytes += utf8.encode('\n\n\n');
 
+    const int chunkSize = 245;
+    for (int i = 0; i < bytes.length; i += chunkSize) {
+      int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
+      await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: false);
+    }
 
-    await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
+
+
+    //await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
     await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
   }
 
@@ -166,9 +173,9 @@ class PrintService2 {
     bytes += utf8.encode('\x1B\x61\x00'); // Alinear izquierda
     //bytes += utf8.encode('\x1B\x61\x02'); // Alinear der
     bytes += utf8.encode(lugar);
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     bytes += utf8.encode('Fecha exp: ${DateFormat.yMd().format(DateTime.now())} ${DateFormat.jm().format(DateTime.now())}\n');
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     // Espacio adicional
     bytes += utf8.encode('\n');
     bytes += utf8.encode('Cliente #\n');
@@ -176,10 +183,10 @@ class PrintService2 {
 
     // Encabezados de la tabla//5
     bytes += utf8.encode('CANT |     PROD     |  IMPORTE\n');
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     bytes += utf8.encode('--------------------------------\n');
 
-       for (var item in carrito) {
+    for (var item in carrito) {
       String productName = item['product'];
       double productPrice = item['price'];
       int productQuantity = item['cant_cart'].toInt();
@@ -198,10 +205,10 @@ class PrintService2 {
       String formattedTotal = ('\$${total.toStringAsFixed(2)}').padLeft(10);
       String formattedCant = (productQuantity.toStringAsFixed(0)).padLeft(3);
 
-      //>>>>>>esto es del precio individual de cada prod
+      //esto es del precio individual de cada prod
       //String price = productPrice.toStringAsFixed(1);
       //String paddedPrice = price.padRight(6);
-      //<<<<<<
+      //
 
       for (int j = 0; j < partesProducto.length; j++) {
         if (j == 0) {
@@ -223,7 +230,7 @@ class PrintService2 {
 
 
     bytes += utf8.encode('--------------------------------\n');
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     int totalLength = totalText.length + amountText.length;
     int spacesToAdd = lineWidth - totalLength;
     String padding = ' ' * spacesToAdd.clamp(0, lineWidth);
@@ -242,9 +249,17 @@ class PrintService2 {
     bytes += utf8.encode('\x1B\x45\x00'); // Negrita OFF
     bytes += utf8.encode('\n\n\n');
 
+    const int chunkSize = 245;
+    for (int i = 0; i < bytes.length; i += chunkSize) {
+      int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
+      await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: true);
+    }
 
-    await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
+    // Enviar un salto de línea final
     await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
+
+    //await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
+    //await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
   }
 
   //funcion para imprimir imagen android
@@ -267,7 +282,8 @@ class PrintService2 {
       img.Image bwImage = _convertToBW(resizedImage);
       List<int> imageBytes = _convertImageToPrinterData(bwImage);
 
-      const chunkSize = 600;
+      //const chunkSize = 600;
+      const chunkSize = 245;
       for (int i = 0; i < imageBytes.length; i += chunkSize) {
         int end = (i + chunkSize < imageBytes.length) ? i + chunkSize : imageBytes.length;
         await characteristic!.write(Uint8List.fromList(imageBytes.sublist(i, end)), withoutResponse: false);

@@ -1,18 +1,17 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:inventory_app/inventory/sellpoint/cart/services/cartService.dart';
-import 'package:inventory_app/inventory/sellpoint/cart/styles/cartStyles.dart';
-import 'package:inventory_app/inventory/print/printService.dart';
-import 'package:inventory_app/inventory/print/printConnections.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:provider/provider.dart';
 import '../../../print/printConnections.dart';
+import '../../../print/printService.dart';
 import '../../../themes/colors.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../stock/products/services/productsService.dart';
+import '../services/cartService.dart';
+import '../styles/cartStyles.dart';
 import '../utils/popUpTabs/showConfirmSellDialog.dart';
 
 class Cart extends StatefulWidget {
@@ -438,8 +437,8 @@ class _CartState extends State<Cart> {
                   if(canPrint){
                     PrintService2 printService2 = PrintService2(widget.printService.characteristic!);
                     try{
-                       Platform.isAndroid ? await printService2.connectAndPrintAndroide(cartProvider.cart, 'assets/imgLog/test2.jpeg') :
-                        await printService2.connectAndPrintIOS(cartProvider.cart, 'assets/imgLog/test2.jpeg');
+                       Platform.isAndroid ? await printService2.connectAndPrintAndroide(cartProvider.cart, 'assets/imgLog/logoTest.png') :
+                        await printService2.connectAndPrintIOS(cartProvider.cart, 'assets/imgLog/logoTest.png');
                     } catch(e){
                       print("Error al intentar imprimir: $e");
                       showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));

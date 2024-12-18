@@ -1,15 +1,15 @@
 import 'dart:io';
-import 'package:inventory_app/helpers/themes/colors.dart';
-import 'package:inventory_app/inventory/admin.dart';
-import 'package:inventory_app/inventory/listenerPrintService.dart';
-import 'package:inventory_app/inventory/print/printConnections.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'globalVar.dart';
 import 'helpers/services/auth_service.dart';
+import 'helpers/themes/colors.dart';
+import 'inventory/admin.dart';
+import 'inventory/listenerPrintService.dart';
+import 'inventory/print/printConnections.dart';
 
 class navBar extends StatefulWidget {
   final bool isDoctorLog;
@@ -33,7 +33,6 @@ class _navBarState extends State<navBar> {
   PrintService printService = PrintService();
   ListenerPrintService listenerPrintService = ListenerPrintService();
   bool? isConecct = false;
-  FlutterBlue flutterBlue = FlutterBlue.instance;
 
 
 

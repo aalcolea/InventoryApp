@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:image/image.dart' as img;
 
 class testPrint extends StatefulWidget {
@@ -11,7 +11,6 @@ class testPrint extends StatefulWidget {
 }
 
 class _testPrintState extends State<testPrint> {
-  FlutterBlue flutterBlue = FlutterBlue.instance;
   List<BluetoothDevice> devicesList = [];
   BluetoothDevice? selectedDevice;
   BluetoothCharacteristic? characteristic;
@@ -170,12 +169,12 @@ class _testPrintState extends State<testPrint> {
 
   void connectToSpecificDevice() async {
     BluetoothDevice? targetDevice;
-    flutterBlue.startScan(timeout: Duration(seconds: 5));
-    flutterBlue.scanResults.listen((results) async {
+    FlutterBluePlus.startScan(timeout: Duration(seconds: 5));
+    FlutterBluePlus.scanResults.listen((results) async {
       for (ScanResult r in results) {
         if (r.device.name == nameTargetDevice) {
           targetDevice = r.device;
-          await flutterBlue.stopScan();
+          await FlutterBluePlus.stopScan();
           setState(() {
             selectedDevice = targetDevice;
           });

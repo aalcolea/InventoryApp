@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:inventory_app/inventory/stock/categories/forms/categoryBox.dart';
-import 'package:inventory_app/inventory/stock/products/styles/productFormStyles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +9,9 @@ import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../../regEx.dart';
 import '../../../kboardVisibilityManager.dart';
+import '../../categories/forms/categoryBox.dart';
 import '../services/productsService.dart';
+import '../styles/productFormStyles.dart';
 
 class ProductForm extends StatefulWidget {
   const ProductForm({super.key});

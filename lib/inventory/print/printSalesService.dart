@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:image/image.dart' as img;
 import 'package:esc_pos_utils/esc_pos_utils.dart';
 import 'package:intl/intl.dart';
@@ -111,7 +111,7 @@ class SalesPrintService {
 
 
     bytes += utf8.encode('--------------------------------\n');
-    Future.delayed(Duration(milliseconds: 25));
+    Future.delayed(const Duration(milliseconds: 25));
     int totalLength = totalText.length + amountText.length;
     int spacesToAdd = lineWidth - totalLength;
     String padding = ' ' * spacesToAdd.clamp(0, lineWidth);
@@ -127,8 +127,13 @@ class SalesPrintService {
     bytes += utf8.encode('\x1B\x61\x01');// Negrita OFF
     bytes += utf8.encode('\n\n\n');
 
+    const int chunkSize = 245;
+    for (int i = 0; i < bytes.length; i += chunkSize) {
+      int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
+      await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: false);
+    }
 
-    await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
+    //await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
     await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
   }
 
@@ -151,7 +156,8 @@ class SalesPrintService {
       img.Image bwImage = _convertToBW(resizedImage);
       List<int> imageBytes = _convertImageToPrinterData(bwImage);
 
-      const chunkSize = 600;
+      //const chunkSize = 600;
+      const chunkSize = 245;
       for (int i = 0; i < imageBytes.length; i += chunkSize) {
         int end = (i + chunkSize < imageBytes.length) ? i + chunkSize : imageBytes.length;
         await characteristic!.write(Uint8List.fromList(imageBytes.sublist(i, end)), withoutResponse: false);

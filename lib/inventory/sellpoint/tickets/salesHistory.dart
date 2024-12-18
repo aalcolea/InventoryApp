@@ -1,13 +1,13 @@
 import 'dart:ui';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/services/salesServices.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/utils/listenerOnDateChanged.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/utils/listenerRemoverOL.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/calendarSales.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/utils/ticketsList.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../print/printConnections.dart';
 import '../../themes/colors.dart';
 import '../../../regEx.dart';
@@ -110,13 +110,17 @@ class _SalesHistoryState extends State<SalesHistory> with SingleTickerProviderSt
     animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 200));
     opacidad = Tween(begin: 0.0, end:  1.0).animate(CurvedAnimation(parent: animationController, curve: Curves.easeInOut));
     animationController.addListener((){
-      setState(() {
-      });
+      if(mounted){
+        setState(() {
+        });
+      }
+
     });
     keyboardVisibilityManager = KeyboardVisibilityManager();
     DateTime now = DateTime.now();
     var formatter = DateFormat('yyyy-MM-dd');
     dateController.text = formatter.format(now);
+    longDate = DateFormat("d 'de' MMMM 'de' y", 'es_ES').format(now);
     super.initState();
   }
 
@@ -145,38 +149,38 @@ class _SalesHistoryState extends State<SalesHistory> with SingleTickerProviderSt
                 leadingWidth: MediaQuery.of(context).size.width,
                 pinned: true,
                 leading: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      IconButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          icon: Icon(
-                            CupertinoIcons.back,
-                            size: MediaQuery.of(context).size.width * 0.08,
-                            color: AppColors.primaryColor,
-                          ),
-                        ),
-                      Expanded(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: Icon(
+                        CupertinoIcons.back,
+                        size: MediaQuery.of(context).size.width * 0.08,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                    Expanded(
                         child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                          _buildTabButton('Tickets', 0),
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.01,
-                          height: MediaQuery.of(context).size.width * 034,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryColor.withOpacity(0.7),
-                          ),
-                        ),
-                        _buildTabButton('Ventas', 1),
-                      ],
-                    )),
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildTabButton('Tickets', 0),
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.01,
+                              height: MediaQuery.of(context).size.width * 034,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryColor.withOpacity(0.7),
+                              ),
+                            ),
+                            _buildTabButton('Ventas', 1),
+                          ],
+                        )),
                     SizedBox(width: MediaQuery.of(context).size.width * 0.12,)
 
-                    ],
-                  ),
+                  ],
+                ),
               ),
 
               SliverToBoxAdapter(
@@ -204,16 +208,16 @@ class _SalesHistoryState extends State<SalesHistory> with SingleTickerProviderSt
                                 focusNode: dateNode,
                                 decoration: InputDecoration(
                                   isDense: true,
-                                    floatingLabelBehavior: dateController.text.isEmpty ? FloatingLabelBehavior.never : FloatingLabelBehavior.auto,
-                                    hintText: dateController.text,
+                                  floatingLabelBehavior: dateController.text.isEmpty ? FloatingLabelBehavior.never : FloatingLabelBehavior.auto,
+                                  hintText: dateController.text,
                                   hintStyle: TextStyle(
                                     color: AppColors.primaryColor.withOpacity(0.3),
                                     fontSize: MediaQuery.of(context).size.width * 0.035,
                                   ),
-                                    disabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: AppColors.primaryColor.withOpacity(0.2), width: 2.0),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
+                                  disabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(color: AppColors.primaryColor.withOpacity(0.2), width: 2.0),
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
                                   enabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(color: AppColors.primaryColor.withOpacity(0.2), width: 2.0),
                                     borderRadius: BorderRadius.circular(10.0),
@@ -237,63 +241,63 @@ class _SalesHistoryState extends State<SalesHistory> with SingleTickerProviderSt
                               ),
                             ),
                             Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  color: AppColors.bgColor,
-                                ),
-                                child: TextFormField(
-                                  controller: seekController,
-                                  focusNode: seekNode,
-                                  enabled: selectedPage == 0 ? false : true,
-                                  inputFormatters: [
-                                    RegEx(type: InputFormatterType.alphanumeric),
-                                  ],
-                                  decoration: InputDecoration(
-                                    isDense: false,
-                                    constraints: BoxConstraints(
-                                      maxHeight: MediaQuery.of(context).size.width * 0.105,
-                                    ),
-                                    hintText: 'Buscar por nombre o categoria...',
-                                    hintStyle: TextStyle(
-                                      color: selectedPage == 0 ?  AppColors.primaryColor.withOpacity(0.3) :  AppColors.primaryColor,
-                                      fontSize: MediaQuery.of(context).size.width * 0.035,
-                                    ),
-                                    disabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: selectedPage == 0 ?  AppColors.primaryColor.withOpacity(0.2) :  AppColors.primaryColor, width: 2.0),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(color: selectedPage == 0 ?  AppColors.primaryColor.withOpacity(0.2) :  AppColors.primaryColor, width: 2.0),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(color: selectedPage == 0 ?  AppColors.primaryColor.withOpacity(0.2) :  AppColors.primaryColor, width: 2.0),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    suffixIcon: seekController.text.isNotEmpty ? IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          seekController.clear();
-                                          filterSales('');
-                                        });
-                                      },
-                                      icon: Icon(
-                                        CupertinoIcons.clear,
-                                        size: MediaQuery.of(context).size.width * 0.05,
-                                        color: AppColors.primaryColor,
-                                      ),
-                                    ) : null
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    color: AppColors.bgColor,
                                   ),
-                                  style: TextStyle(
-                                    color: AppColors.primaryColor,
-                                    fontSize: MediaQuery.of(context).size.width * 0.0425,
+                                  child: TextFormField(
+                                    controller: seekController,
+                                    focusNode: seekNode,
+                                    enabled: selectedPage == 0 ? false : true,
+                                    inputFormatters: [
+                                      RegEx(type: InputFormatterType.alphanumeric),
+                                    ],
+                                    decoration: InputDecoration(
+                                        isDense: false,
+                                        constraints: BoxConstraints(
+                                          maxHeight: MediaQuery.of(context).size.width * 0.105,
+                                        ),
+                                        hintText: 'Buscar por nombre o categoria...',
+                                        hintStyle: TextStyle(
+                                          color: selectedPage == 0 ?  AppColors.primaryColor.withOpacity(0.3) :  AppColors.primaryColor,
+                                          fontSize: MediaQuery.of(context).size.width * 0.035,
+                                        ),
+                                        disabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: selectedPage == 0 ?  AppColors.primaryColor.withOpacity(0.2) :  AppColors.primaryColor, width: 2.0),
+                                          borderRadius: BorderRadius.circular(10.0),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderSide: BorderSide(color: selectedPage == 0 ?  AppColors.primaryColor.withOpacity(0.2) :  AppColors.primaryColor, width: 2.0),
+                                          borderRadius: BorderRadius.circular(10.0),
+                                        ),
+                                        border: OutlineInputBorder(
+                                          borderSide: BorderSide(color: selectedPage == 0 ?  AppColors.primaryColor.withOpacity(0.2) :  AppColors.primaryColor, width: 2.0),
+                                          borderRadius: BorderRadius.circular(10.0),
+                                        ),
+                                        suffixIcon: seekController.text.isNotEmpty ? IconButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              seekController.clear();
+                                              filterSales('');
+                                            });
+                                          },
+                                          icon: Icon(
+                                            CupertinoIcons.clear,
+                                            size: MediaQuery.of(context).size.width * 0.05,
+                                            color: AppColors.primaryColor,
+                                          ),
+                                        ) : null
+                                    ),
+                                    style: TextStyle(
+                                      color: AppColors.primaryColor,
+                                      fontSize: MediaQuery.of(context).size.width * 0.0425,
+                                    ),
+                                    onChanged: (text){
+                                      filterSales(text);
+                                    },
                                   ),
-                                  onChanged: (text){
-                                    filterSales(text);
-                                  },
-                                ),
-                              )
+                                )
                             )
                           ],
                         ),
@@ -305,10 +309,10 @@ class _SalesHistoryState extends State<SalesHistory> with SingleTickerProviderSt
                           alignment: Alignment.centerLeft,
                           child: Text(
                             textAlign: TextAlign.left,
-                            '*Productos vendidos el ${longDate}',
+                            '*Productos vendidos el $longDate',
                             style: TextStyle(
                               color: AppColors.primaryColor,
-                              fontSize: MediaQuery.of(context).size.width * 0.035,
+                              fontSize: MediaQuery.of(context).size.width * 0.04,
                             ),
                           ),
                         ),
@@ -327,6 +331,15 @@ class _SalesHistoryState extends State<SalesHistory> with SingleTickerProviderSt
                     });
                   },
                   children: [
+                    //TODO si los listener presentan mas problemas usar esta structura
+                    /*ListView.builder(
+                  itemCount: 100000, // Puedes usar números muy grandes
+                  itemBuilder: (context, index) {
+                    return ListTile(title: Text('Item $index'));
+                  },
+                );*/
+
+                    //
                     Ticketslist(
                       onShowBlur: _onShowBlurr,
                       onOptnSize: onOptnSize,
@@ -387,7 +400,7 @@ class _SalesHistoryState extends State<SalesHistory> with SingleTickerProviderSt
                                   color: AppColors.primaryColor,
                                   borderRadius: BorderRadius.circular(10),
                                 ), child: SalesCalendar(
-                                onDayToAppointFormSelected: _onDateToAppointmentForm, dateInit: dateController.text),
+                                  onDayToAppointFormSelected: _onDateToAppointmentForm, dateInit: dateController.text),
                               ),
                             ],
                           )

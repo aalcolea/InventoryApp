@@ -51,7 +51,7 @@ class _SalesPDFState extends State<SalesPDF> {
       totalVenta += producto['total'];
     }
     pdf = pw.Document();
-    final imageBytes = await rootBundle.load('assets/imgLog/test2.jpeg');
+    final imageBytes = await rootBundle.load('assets/imgLog/logoTest.png');
     final image = pw.MemoryImage(imageBytes.buffer.asUint8List());
     pdf.addPage(
       pw.MultiPage(

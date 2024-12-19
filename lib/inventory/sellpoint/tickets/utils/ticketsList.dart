@@ -1,13 +1,13 @@
-import 'package:inventory_app/inventory/sellpoint/tickets/utils/listenerOnDateChanged.dart';
-import 'package:inventory_app/inventory/sellpoint/tickets/utils/listenerRemoverOL.dart';
-import 'package:inventory_app/inventory/sellpoint/tickets/utils/ticketOptions.dart';
+
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/ticketOptions.dart';
 import '../../../kboardVisibilityManager.dart';
 import '../../../print/printConnections.dart';
 import '../../../themes/colors.dart';
 import '../../../stock/products/services/productsService.dart';
 import '../services/salesServices.dart';
+import 'listenerOnDateChanged.dart';
+import 'listenerRemoverOL.dart';
 
 class Ticketslist extends StatefulWidget {
   final ListenerremoverOL listenerremoverOL;
@@ -85,16 +85,18 @@ class _TicketslistState extends State<Ticketslist> {
         optnSize = ticketKeys[0].currentContext!.size!.height;
       });
     });
-    widget.listenerremoverOL.registrarObservador((newValue){
-      if(newValue == true){
+    widget.listenerremoverOL.registrarObservador((newValue) {
+      if (newValue == true && mounted) {
         removeOverlay();
       }
     });
     widget.listenerOnDateChanged.registrarObservador((callback, initData, finalData) async {
-      if(callback){
-        await fetchSales(initData, finalData).then((_){
-          WidgetsBinding.instance.addPostFrameCallback((_){
-            optnSize = ticketKeys[0].currentContext!.size!.height;
+      if (callback) {
+        await fetchSales(initData, finalData).then((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && tickets.isNotEmpty && ticketKeys[0].currentContext != null) {
+              optnSize = ticketKeys[0].currentContext!.size?.height ?? 0.0;
+            }
           });
         });
       }
@@ -102,9 +104,11 @@ class _TicketslistState extends State<Ticketslist> {
   }
 
   Future<void> fetchSales(String? initData, String? finalData) async{
-    setState(() {
-      isLoading = true;
-    });
+    if(mounted){
+      setState(() {
+        isLoading = true;
+      });
+    }
     widget.onDateChanged(initData!);
     try{
       final salesService = SalesServices();
@@ -118,14 +122,17 @@ class _TicketslistState extends State<Ticketslist> {
           tileController?.add(ExpansionTileController());
         }
         cantHelper = List.generate(tickets.length, (index) => 0);
+
         Future.delayed(Duration(milliseconds: 250));
         isLoading = false;
       });
     }catch (e) {
       print('Error fetching sales: $e');
-      setState(() {
-        isLoading = false;
-      });
+      if(mounted){
+        setState(() {
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -174,7 +181,7 @@ class _TicketslistState extends State<Ticketslist> {
                   onClose: removeOverlay,
                   columnHeight: colHeight,
                   onShowBlur: widget.onShowBlur,
-                  columnH: null, 
+                  columnH: null,
                   ticketInfo: ticketInfo,
                   printService: widget.printService,
                   tickets: ticketTemp,
@@ -214,218 +221,220 @@ class _TicketslistState extends State<Ticketslist> {
   Widget build(BuildContext context) {
     // final groupedTickets = groupByTicket(ticketProducts);
     return Container(
-      color: AppColors.bgColor,
-      child: !isLoading ? (
-        tickets.isNotEmpty ? ListView.builder(
-          padding: EdgeInsets.zero,
-          itemCount: tickets.length,
-          itemBuilder: (context, index) {
-            return Container(
-                key: ticketKeys[index],
-                margin: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.03, right: MediaQuery.of(context).size.width * 0.03, bottom: MediaQuery.of(context).size.width * 0.03),
-                decoration: BoxDecoration(
-                  color: AppColors.bgColor,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.blackColor.withOpacity(0.1),
-                      offset: const Offset(4, 4),
-                      blurRadius: 2,
-                      spreadRadius: 0.1,
-                    )
-                  ],
-                ),
-                child: GestureDetector(
-                  onLongPress: () {
-                    keyboardVisibilityManager.hideKeyboard(context);
-                    showTicketOptions(index);
-                    widget.onShowBlur(2);
-                  },
-                  child: ExpansionTile(
-                      controller: tileController![index],
-                      iconColor: AppColors.bgColor,
-                      collapsedIconColor: AppColors.primaryColor,
-                      backgroundColor: AppColors.primaryColor,
-                      collapsedBackgroundColor: Colors.transparent,
-                      textColor: AppColors.bgColor,
-                      collapsedTextColor: AppColors.primaryColor,
-                      tilePadding: EdgeInsets.only(
-                          left: MediaQuery.of(context).size.width * 0.04,
-                          right: MediaQuery.of(context).size.width * 0.02,
-                          top: MediaQuery.of(context).size.width * 0.01,
-                          bottom: MediaQuery.of(context).size.width * 0.015
-                      ),
-                      initiallyExpanded: false,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: const BorderSide(
-                              color: AppColors.primaryColor,
-                              width: 2
-                          )
-                      ),
-                      title: Text(
-                        'Ticket ${tickets[index]['id']}',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: MediaQuery.of(context).size.width * 0.05,
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Fecha: ',
-                                style: TextStyle(
-                                  fontSize: MediaQuery.of(context).size.width * 0.04,
-                                ),
-                              ),
-                              Text(
-                                '${tickets[index]['fecha']}',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: MediaQuery.of(context).size.width * 0.04),
-                              ),
-                            ],
+        color: AppColors.bgColor,
+        child: !isLoading ? (
+            tickets.isNotEmpty ? ListView.builder(
+              padding: EdgeInsets.zero,
+              itemCount: tickets.length,
+              itemBuilder: (context, index) {
+                return Container(
+                    key: ticketKeys[index],
+                    margin: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.03, right: MediaQuery.of(context).size.width * 0.03, bottom: MediaQuery.of(context).size.width * 0.03),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgColor,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.blackColor.withOpacity(0.1),
+                          offset: const Offset(4, 4),
+                          blurRadius: 2,
+                          spreadRadius: 0.1,
+                        )
+                      ],
+                    ),
+                    child: GestureDetector(
+                      onLongPress: () {
+                        keyboardVisibilityManager.hideKeyboard(context);
+                        showTicketOptions(index);
+                        widget.onShowBlur(2);
+                      },
+                      child: ExpansionTile(
+                          controller: tileController![index],
+                          iconColor: AppColors.bgColor,
+                          collapsedIconColor: AppColors.primaryColor,
+                          backgroundColor: AppColors.primaryColor,
+                          collapsedBackgroundColor: Colors.transparent,
+                          textColor: AppColors.bgColor,
+                          collapsedTextColor: AppColors.primaryColor,
+                          tilePadding: EdgeInsets.only(
+                              left: MediaQuery.of(context).size.width * 0.04,
+                              right: MediaQuery.of(context).size.width * 0.02,
+                              top: MediaQuery.of(context).size.width * 0.01,
+                              bottom: MediaQuery.of(context).size.width * 0.015
                           ),
-                          Row(
-                            children: [
-                              Text(
-                                'Cantidad total: ',
-                                style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.04
-                                ),
-                              ),
-                              Text(
-                                '${tickets[index]['cantidad']} pzs',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: MediaQuery.of(context).size.width * 0.04),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'Total: ',
-                                style: TextStyle(
-                                    fontSize: MediaQuery.of(context).size.width * 0.04
-                                ),
-                              ),
-                              Text(
-                                '\$${tickets[index]['total']}',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: MediaQuery.of(context).size.width * 0.04),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      children: [
-                        Container(
-                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.04, top: MediaQuery.of(context).size.width * 0.04, left: MediaQuery.of(context).size.width * 0.04),
-                          decoration: const BoxDecoration(
-                              color: AppColors.bgColor,
-                              borderRadius: BorderRadius.only(bottomRight: Radius.circular(10), bottomLeft: Radius.circular(10)),
-                              border: Border(
-                                  top: BorderSide(color: AppColors.primaryColor, width: 2)
+                          initiallyExpanded: false,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              side: const BorderSide(
+                                  color: AppColors.primaryColor,
+                                  width: 2
                               )
                           ),
-                          child: Column(
-                            children: tickets[index]['detalles'].map<Widget>((detalle) {
-                              return ListTile(
-                                contentPadding: EdgeInsets.symmetric(
-                                    horizontal: MediaQuery.of(context).size.width * 0.06),
-                                title: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      '${detalle['producto']['nombre']}',
-                                      style: TextStyle(
-                                        color: AppColors.primaryColor,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.width * 0.04,
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "Cant.: ",
-                                          style: TextStyle(
-                                              color: AppColors.primaryColor,
-                                              fontSize: MediaQuery.of(context).size.width * 0.035),
-                                        ),
-                                        Text(
-                                          '${detalle['cantidad']} pzs',
-                                          style: TextStyle(
-                                              color: AppColors.primaryColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: MediaQuery.of(context).size.width * 0.035),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "Precio unitario: ",
-                                          style: TextStyle(
-                                              color: AppColors.primaryColor,
-                                              fontSize: MediaQuery.of(context).size.width * 0.035),
-                                        ),
-                                        Text(
-                                          '\$${detalle['precio']}',
-                                          style: TextStyle(
-                                            color: AppColors.primaryColor,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: MediaQuery.of(context).size.width * 0.035,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "Total: ",
-                                          style: TextStyle(
-                                              color: AppColors.primaryColor,
-                                              fontSize: MediaQuery.of(context).size.width * 0.035),
-                                        ),
-                                        Text(
-                                          '\$${detalle['cantidad'] * double.parse(detalle['precio'])}',
-                                          style: TextStyle(
-                                            color: AppColors.primaryColor,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: MediaQuery.of(context).size.width * 0.035,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }).toList(),
+                          title: Text(
+                            'Ticket ${tickets[index]['id']}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: MediaQuery.of(context).size.width * 0.05,
+                            ),
                           ),
-                        )
-                      ]
-                  ),
-                )
-            );
-          },
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Fecha: ',
+                                    style: TextStyle(
+                                      fontSize: MediaQuery.of(context).size.width * 0.04,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${tickets[index]['fecha']}',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: MediaQuery.of(context).size.width * 0.04),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Cantidad total: ',
+                                    style: TextStyle(
+                                        fontSize: MediaQuery.of(context).size.width * 0.04
+                                    ),
+                                  ),
+                                  Text(
+                                    '${tickets[index]['cantidad']} pzs',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: MediaQuery.of(context).size.width * 0.04),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Total: ',
+                                    style: TextStyle(
+                                        fontSize: MediaQuery.of(context).size.width * 0.04
+                                    ),
+                                  ),
+                                  Text(
+                                    '\$${tickets[index]['total']}',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: MediaQuery.of(context).size.width * 0.04),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          children: [
+                            Container(
+                              padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.04, top: MediaQuery.of(context).size.width * 0.04, left: MediaQuery.of(context).size.width * 0.04),
+                              decoration: const BoxDecoration(
+                                  color: AppColors.bgColor,
+                                  borderRadius: BorderRadius.only(bottomRight: Radius.circular(10), bottomLeft: Radius.circular(10)),
+                                  border: Border(
+                                      top: BorderSide(color: AppColors.primaryColor, width: 2)
+                                  )
+                              ),
+                              child: Column(
+                                children: tickets[index]['detalles'].map<Widget>((detalle) {
+                                  return ListTile(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: MediaQuery.of(context).size.width * 0.06),
+                                    title: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          '${detalle['producto']['nombre']}',
+                                          style: TextStyle(
+                                            color: AppColors.primaryColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: MediaQuery.of(context).size.width * 0.04,
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Cant.: ",
+                                              style: TextStyle(
+                                                  color: AppColors.primaryColor,
+                                                  fontSize: MediaQuery.of(context).size.width * 0.035),
+                                            ),
+                                            Text(
+                                              '${detalle['cantidad']} pzs',
+                                              style: TextStyle(
+                                                  color: AppColors.primaryColor,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: MediaQuery.of(context).size.width * 0.035),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Precio unitario: ",
+                                              style: TextStyle(
+                                                  color: AppColors.primaryColor,
+                                                  fontSize: MediaQuery.of(context).size.width * 0.035),
+                                            ),
+                                            Text(
+                                              '\$${detalle['precio']}',
+                                              style: TextStyle(
+                                                color: AppColors.primaryColor,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: MediaQuery.of(context).size.width * 0.035,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Total: ",
+                                              style: TextStyle(
+                                                  color: AppColors.primaryColor,
+                                                  fontSize: MediaQuery.of(context).size.width * 0.035),
+                                            ),
+                                            Text(
+                                              '\$${detalle['cantidad'] * double.parse(detalle['precio'])}',
+                                              style: TextStyle(
+                                                color: AppColors.primaryColor,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: MediaQuery.of(context).size.width * 0.035,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            )
+                          ]
+                      ),
+                    )
+                );
+              },
+            ) : Center(
+              child: Text(
+                textAlign: TextAlign.center,
+                'No hay tickets correspondientes a la fecha seleccionada',
+                style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width * 0.045,
+                    color: AppColors.primaryColor
+                ),
+              ),
+            )
         ) : const Center(
-          child: Text(
-            'No hay tickets correspondientes a la fecha seleccionada',
-            style: TextStyle(
-                color: AppColors.primaryColor
-            ),
+          child: CircularProgressIndicator(
+            color: AppColors.primaryColor,
           ),
         )
-      ) : const Center(
-        child: CircularProgressIndicator(
-          color: AppColors.primaryColor,
-        ),
-      )
     );
   }
 }

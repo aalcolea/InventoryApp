@@ -1,14 +1,12 @@
-import 'dart:convert';
 import 'dart:io';
-import 'package:inventory_app/regEx.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:inventory_app/inventory/stock/categories/services/categoriesService.dart';
 
+import '../../../../regEx.dart';
 import '../../../themes/colors.dart';
+import '../services/categoriesService.dart';
 
 class EditCategoryForm extends StatefulWidget {
 

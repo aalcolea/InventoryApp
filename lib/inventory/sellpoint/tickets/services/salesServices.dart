@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:inventory_app/globalVar.dart';
 import 'package:intl/intl.dart';
+
+import '../../../../globalVar.dart';
 
 List<Map<String, dynamic>> sales = [];
 List<Map<String, dynamic>> salesByProduct = [];

@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:ui';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:inventory_app/inventory/stock/products/services/productsService.dart';
 import 'package:inventory_app/inventory/stock/products/utils/productOptions.dart';
 import 'package:inventory_app/inventory/stock/products/views/productDetails.dart';
 import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../helpers/utils/showToast.dart';
 import '../../helpers/utils/toastWidget.dart';

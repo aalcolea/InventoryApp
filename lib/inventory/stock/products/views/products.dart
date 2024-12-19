@@ -1,15 +1,14 @@
 import 'dart:ui';
-
-import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
-import 'package:inventory_app/inventory/stock/products/services/productsService.dart';
-import 'package:inventory_app/inventory/stock/products/views/productDetails.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inventory_app/inventory/stock/products/views/productDetails.dart';
 import 'package:provider/provider.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../kboardVisibilityManager.dart';
 import '../../../sellpoint/cart/services/cartService.dart';
+import '../../utils/listenerBlurr.dart';
+import '../services/productsService.dart';
 import '../utils/productOptions.dart';
 import '../../../themes/colors.dart';
 

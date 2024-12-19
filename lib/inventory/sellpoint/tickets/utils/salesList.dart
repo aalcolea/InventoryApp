@@ -1,16 +1,12 @@
 import 'dart:io';
-
-import 'package:inventory_app/inventory/print/printSalesService.dart';
-import 'package:inventory_app/inventory/print/printService.dart';
-import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../print/printConnections.dart';
+import '../../../print/printSalesService.dart';
 import '../../../print/salesPDF.dart';
-import '../../../print/testPDF.dart';
 import '../../../themes/colors.dart';
 import '../services/salesServices.dart';
 import 'listenerOnDateChanged.dart';
@@ -250,8 +246,8 @@ class _SalesListState extends State<SalesList> {
                       if (canPrint) {
                         salesPrintService = SalesPrintService(widget.printService.characteristic!);
                         try{
-                          Platform.isAndroid ? await salesPrintService.connectAndPrintAndroide(productsFilterd, 'assets/imgLog/test2.jpeg', products[0]['fecha_venta']) :
-                      await salesPrintService.connectAndPrintIOS(productsFilterd, 'assets/imgLog/test2.jpeg', products[0]['fecha_venta']);
+                          Platform.isAndroid ? await salesPrintService.connectAndPrintAndroide(productsFilterd, 'assets/imgLog/logoTest.png', products[0]['fecha_venta']) :
+                      await salesPrintService.connectAndPrintIOS(productsFilterd, 'assets/imgLog/logoTest.png', products[0]['fecha_venta']);
                       } catch(e){
                       print("Error al intentar imprimir: $e");
                       showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));

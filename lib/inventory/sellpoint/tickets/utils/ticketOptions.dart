@@ -1,12 +1,11 @@
 import 'dart:io';
-
-import 'package:inventory_app/inventory/print/printService.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../helpers/themes/colors.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../print/printConnections.dart';
+import '../../../print/printService.dart';
 import '../../../print/testPDF.dart';
 import '../../../themes/colors.dart';
 
@@ -206,8 +205,8 @@ class _TicketOptionsState extends State<TicketOptions> {
                               if (canPrint) {
                                 PrintService2 printService2 = PrintService2(widget.printService.characteristic!);
                                 try{
-                                  Platform.isAndroid ? await printService2.connectAndPrintAndroideTicket(ticketDetails, 'assets/imgLog/test2.jpeg') :
-                                  await printService2.connectAndPrintIOSTicket(ticketDetails, 'assets/imgLog/test2.jpeg');
+                                  Platform.isAndroid ? await printService2.connectAndPrintAndroideTicket(ticketDetails, 'assets/imgLog/logoTest.png') :
+                                  await printService2.connectAndPrintIOSTicket(ticketDetails, 'assets/imgLog/logoTest.png');
                                 } catch(e){
                                   print("Error al intentar imprimir: $e");
                                   showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));

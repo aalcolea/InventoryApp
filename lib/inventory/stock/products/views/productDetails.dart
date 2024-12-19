@@ -1,17 +1,15 @@
 import 'dart:async';
-import 'dart:ffi';
-import 'package:inventory_app/inventory/stock/products/styles/productFormStyles.dart';
-import 'package:inventory_app/inventory/stock/utils/listenerCatBox.dart';
-import 'package:inventory_app/regEx.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import '../../../../regEx.dart';
 import '../../../themes/colors.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../kboardVisibilityManager.dart';
 import '../../categories/forms/categoryBox.dart';
+import '../../utils/listenerCatBox.dart';
 import '../services/productsService.dart';
+import '../styles/productFormStyles.dart';
 
 class ProductDetails extends StatefulWidget {
   final int idProduct;

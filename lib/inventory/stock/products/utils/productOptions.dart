@@ -1,14 +1,13 @@
-import 'dart:ffi';
-import 'package:inventory_app/helpers/themes/colors.dart';
-import 'package:inventory_app/inventory/stock/products/utils/PopUpTabs/deleteProductDialog.dart';
-import 'package:inventory_app/inventory/stock/products/utils/PopUpTabs/modifyStockDialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import '../../../../helpers/themes/colors.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../views/productDetails.dart';
 import '../services/productsService.dart';
 import '../services/stockService.dart';
+import 'PopUpTabs/deleteProductDialog.dart';
+import 'PopUpTabs/modifyStockDialog.dart';
 
 class ProductOptions extends StatefulWidget {
 

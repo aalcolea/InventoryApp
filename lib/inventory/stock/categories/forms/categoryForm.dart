@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:inventory_app/regEx.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../../../regEx.dart';
+import '../../../kboardVisibilityManager.dart';
 import '../../../themes/colors.dart';
 
 class CategoryForm extends StatefulWidget {
@@ -24,20 +25,51 @@ class _CategoryFormState extends State<CategoryForm> {
   File? _selectedImage;
   final picker = ImagePicker();
   bool isLoading = false;
+  late KeyboardVisibilityManager keyboardVisibilityManager;
+  //
+  Future<void> requestPermissions() async {
+    if (Platform.isAndroid) {
+      var androidInfo = await DeviceInfoPlugin().androidInfo;
 
-  Future<void> _requestPermission() async {
-    var status = await Permission.storage.status;
-    if (!status.isGranted) {
-      status = await Permission.storage.request();
+      if (androidInfo.version.sdkInt >= 33) {
+        // Android 13+
+        if (await Permission.photos.isDenied) {
+          await Permission.photos.request();
+        }
+        if (await Permission.storage.isDenied) {
+          await Permission.storage.request();
+        }
+      }
     }
-    if (status.isGranted) {
-      pickImage();
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Permiso denegado para acceder a las imágenes')),
-      );
+    if (await Permission.storage.isDenied) {
+      await Permission.storage.request();
     }
   }
+  //
+
+  /* Future<bool> requestPermissions() async {
+    if (Platform.isAndroid) {
+      var androidInfo = await DeviceInfoPlugin().androidInfo;
+
+      if (androidInfo.version.sdkInt >= 33) {
+        // Android 13+: Solicitar permisos granulares
+        if (await Permission.photos.isDenied) {
+          await Permission.photos.request();
+        }
+        if (await Permission.storage.isDenied) {
+          await Permission.storage.request();
+        }
+      } else {
+        // Android 12 y versiones anteriores: solo permisos de almacenamiento
+        if (await Permission.storage.isDenied) {
+          await Permission.storage.request();
+        }
+      }
+    }
+
+    return (await Permission.photos.isGranted) || (await Permission.storage.isGranted);
+  }*/
+
 
   Future<void> pickImage() async {
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -133,7 +165,15 @@ class _CategoryFormState extends State<CategoryForm> {
   }
 
   @override
+  void initState() {
+    // TODO: implement initState
+    keyboardVisibilityManager = KeyboardVisibilityManager();
+    super.initState();
+  }
+
+  @override
   void dispose() {
+    keyboardVisibilityManager.dispose();
     nameController.dispose();
     super.dispose();
   }
@@ -143,7 +183,9 @@ class _CategoryFormState extends State<CategoryForm> {
     return Material(
         color: Colors.transparent,
         child: Center(
-          child: Container(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            margin: EdgeInsets.only(bottom: keyboardVisibilityManager.visibleKeyboard ? MediaQuery.of(context).size.width * 0.52 : 0),
             width: MediaQuery.of(context).size.width * 0.9,
             padding: EdgeInsets.only(
               left: MediaQuery.of(context).size.width * 0.02,
@@ -155,7 +197,6 @@ class _CategoryFormState extends State<CategoryForm> {
               color: AppColors.whiteColor,
             ),
             child: Column(
-
               mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
@@ -186,17 +227,19 @@ class _CategoryFormState extends State<CategoryForm> {
                 Container(
                   height: MediaQuery.of(context).size.width * 0.105,
                   margin: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.width * 0.035,
-                      bottom: MediaQuery.of(context).size.width * 0.01
+                    top: MediaQuery.of(context).size.width * 0.035,
                   ),
                   padding: EdgeInsets.symmetric(
                     vertical: MediaQuery.of(context).size.width * 0.02,
                     horizontal: MediaQuery.of(context).size.width * 0.03,
                   ),
                   alignment: Alignment.centerLeft,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.primaryColor,
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(10),
+                      topRight: Radius.circular(10),
+                    ),
                   ),
                   child: Text(
                     'Nombre de la categoría:',
@@ -207,7 +250,7 @@ class _CategoryFormState extends State<CategoryForm> {
                     ),
                   ),
                 ),
-                Container(
+                SizedBox(
                   width: double.infinity,
                   height: MediaQuery.of(context).size.width * 0.105,
                   child: TextFormField(
@@ -220,16 +263,21 @@ class _CategoryFormState extends State<CategoryForm> {
                       hintStyle: TextStyle(
                         color: AppColors.primaryColor.withOpacity(0.5),
                       ),
-                      enabledBorder: OutlineInputBorder(
+                      enabledBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
-                        borderRadius: BorderRadius.circular(10.0),
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(10),
+                          bottomRight: Radius.circular(10),
+                        ),
                       ),
-                      border: OutlineInputBorder(
-                        borderSide: BorderSide(),
-                        borderRadius: BorderRadius.circular(10.0),
+                      border: const OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(10),
+                          bottomRight: Radius.circular(10),
+                        ),
                       ),
                     ),
-                    onTap: () {},
                   ),
                 ),
                 Column(
@@ -266,8 +314,15 @@ class _CategoryFormState extends State<CategoryForm> {
                       width: double.infinity,
                       height: MediaQuery.of(context).size.width * 0.4,
                       child: ElevatedButton(
-                          onPressed: () {
-                            _requestPermission();
+                          onPressed: () async {
+                            print('aquiFly');
+                            await requestPermissions();
+                            try{
+                              await pickImage();
+                            }catch (e){
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Por favor, otorga permisos para acceder a las imágenes.')));
+                            }
                             print(_selectedImage);
                           },
                           style: ElevatedButton.styleFrom(
@@ -294,7 +349,28 @@ class _CategoryFormState extends State<CategoryForm> {
                           width: double.infinity,
                           height: MediaQuery.of(context).size.width * 0.10,
                           child: ElevatedButton(
-                            onPressed: _requestPermission,
+                            /*onPressed: () async {
+                              print('aquiFly1');
+                              bool permissionsGranted = await requestPermissions();
+                              if (permissionsGranted) {
+                                await pickImage();
+                              } else {
+                                print("No se concedieron los permisos necesarios para acceder a las imágenes.");
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Por favor, otorga permisos para acceder a las imágenes.')),
+                                );
+                              }
+                            },*/
+                            onPressed: () async {
+                              print('aquiFly1');
+                              await requestPermissions();
+                              try{
+                                await pickImage();
+                              }catch (e){
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Por favor, otorga permisos para acceder a las imágenes.')));
+                              }
+                            },
                             style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.whiteColor,
                                 side: const BorderSide(color: AppColors.primaryColor, width: 1.5),

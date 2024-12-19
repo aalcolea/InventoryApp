@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
-
 import '../../../themes/colors.dart';
+import '../../utils/listenerBlurr.dart';
 import '../forms/categoryForm.dart';
 import '../../products/views/products.dart';
 import 'package:flutter/cupertino.dart';
@@ -395,7 +393,7 @@ class _CategoriesState extends State<Categories> {
                                                         child: Column(
                                                           children: [
                                                             Flexible(
-                                                              child: Image.asset('assets/imgLog/test2.jpeg',
+                                                              child: Image.asset('assets/imgLog/notFound.jpg',
                                                                 fit: BoxFit.fill,),),
                                                             const Text('Imagen no disponible'),
                                                           ],

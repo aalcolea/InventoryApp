@@ -1,7 +1,4 @@
 import 'dart:convert';
-import 'package:inventory_app/helpers/themes/colors.dart';
-import 'package:inventory_app/inventory/sellpoint/cart/services/cartService.dart';
-import 'package:inventory_app/helpers/views/login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +11,9 @@ import 'globalVar.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 
 import 'helpers/services/databaseHelpers.dart';
+import 'helpers/themes/colors.dart';
+import 'helpers/views/login.dart';
+import 'inventory/sellpoint/cart/services/cartService.dart';
 
 final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 void main() async {

@@ -145,7 +145,7 @@ class PrintService2 {
     bytes += utf8.encode('\x1B\x45\x00');
     bytes += utf8.encode('\n\n\n');
 
-    const int chunkSize = 245;
+    const int chunkSize = 182;
     for (int i = 0; i < bytes.length; i += chunkSize) {
       int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
       await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: false);
@@ -249,7 +249,7 @@ class PrintService2 {
     bytes += utf8.encode('\x1B\x45\x00'); // Negrita OFF
     bytes += utf8.encode('\n\n\n');
 
-    const int chunkSize = 245;
+    const int chunkSize = 180;
     for (int i = 0; i < bytes.length; i += chunkSize) {
       int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
       await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: true);
@@ -335,26 +335,37 @@ class PrintService2 {
 
     return bytes;
   }
-  // termina funcion para android
 
-  Future<void> printImageWithAtkinsonDithering(String imagePath, {int maxWidth = 384, int maxHeight = 200}) async {
+  Future<void> printImageWithAtkinsonDithering(String imagePath,
+      {int maxWidth = 384, int maxHeight = 200, int chunkSize = 182}) async {
     if (characteristic == null) return;
-    ByteData data = await rootBundle.load(imagePath);
-    Uint8List bytes = data.buffer.asUint8List();
-    img.Image? image = img.decodeImage(bytes);
-    if (image != null) {
+
+    try {
+      ByteData data = await rootBundle.load(imagePath);
+      Uint8List bytes = data.buffer.asUint8List();
+      img.Image? image = img.decodeImage(bytes);
+      if (image == null) {
+        print("Error al cargar la imagen");
+        return;
+      }
+
       img.Image processedImage = applyAtkinsonDithering(image, maxWidth, maxHeight);
+
       final profile = await CapabilityProfile.load();
       final generator = Generator(PaperSize.mm80, profile);
       List<int> escPosData = generator.image(processedImage);
 
-      await characteristic!.write(Uint8List.fromList(escPosData), withoutResponse: true);
+      for (int i = 0; i < escPosData.length; i += chunkSize) {
+        int end = (i + chunkSize < escPosData.length) ? i + chunkSize : escPosData.length;
+        List<int> chunk = escPosData.sublist(i, end);
+        await characteristic!.write(Uint8List.fromList(chunk), withoutResponse: true);
+      }
+
       await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: true);
-    } else {
-      print("Error al cargar la imagen");
+    } catch (e) {
+      print("Error al intentar imprimir: $e");
     }
   }
-
   img.Image applyAtkinsonDithering(img.Image image, int maxWidth, int maxHeight) {
     int width = image.width;
     int height = image.height;
@@ -392,5 +403,4 @@ class PrintService2 {
     int newPixel = (pixel + error).clamp(0, 255).toInt();
     image.setPixel(x, y, img.getColor(newPixel, newPixel, newPixel));
   }
-
 }

@@ -35,7 +35,7 @@ class SalesPrintService {
     }
 
     await printImageWithAtkinsonDithering(imagePath, maxWidth: 200, maxHeight: 200);
-    await printText(products, saleDate);
+    await printTextIos(products, saleDate);
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
@@ -137,6 +137,104 @@ class SalesPrintService {
     await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
   }
 
+  Future<void> printTextIos(List<Map<String, dynamic>> products, String saleDate) async {
+    String lugar = 'Lugar exp: Merida, Yucatan\n';
+    double cuentaTotal = 0;
+
+    if (characteristic == null) return;
+
+    List<int> bytes = [];
+
+    // Comando ESC/POS para centrar y poner en negrita el texto "BEUATE CLINIQUE"
+    bytes += utf8.encode('\x1B\x61\x01'); // Alinear centro
+    bytes += utf8.encode('\x1B\x45\x01'); // Negrita ON
+    bytes += utf8.encode('CLINICA FLY\n\n');
+    bytes += utf8.encode('\x1B\x45\x00'); // Negrita OFF
+    bytes += utf8.encode('\x1B\x61\x00'); // Alinear izquierda
+    //bytes += utf8.encode('\x1B\x61\x02'); // Alinear der
+    bytes += utf8.encode(lugar);
+    Future.delayed(Duration(milliseconds: 25));
+    bytes += utf8.encode('Fecha exp: ${DateFormat.yMd().format(DateTime.now())} ${DateFormat.jm().format(DateTime.now())}\n');
+    Future.delayed(Duration(milliseconds: 25));
+    // Espacio adicional
+    bytes += utf8.encode('\n');
+    bytes += utf8.encode('Ventas del dia ${saleDate}\n');
+    bytes += utf8.encode('\n');
+
+    // Encabezados de la tabla//5
+    bytes += utf8.encode('CANT |     PROD     |  IMPORTE\n');
+    Future.delayed(const Duration(milliseconds: 25));
+    bytes += utf8.encode('--------------------------------\n');
+
+    for (var item in products) {
+      String productName = item['nombre'];
+      double productPrice = item['precio'];
+      int productQuantity = item['cantidad'].toInt();
+      double total = productPrice * productQuantity;
+      cuentaTotal += total;
+      List<String> partesProducto = [];
+
+      int maxCaracteres = 14;
+      for (int i = 0; i < productName.length; i += maxCaracteres) {
+        int fin = (i + maxCaracteres < productName.length) ? i + maxCaracteres : productName.length;
+        String parte = productName.substring(i, fin);
+        partesProducto.add(parte.padRight(maxCaracteres));
+        Future.delayed(const Duration(milliseconds: 25));
+      }
+
+      String formattedTotal = ('\$${total.toStringAsFixed(2)}').padLeft(10);
+      String formattedCant = (productQuantity.toStringAsFixed(0)).padLeft(3);
+
+      //esto es del precio individual de cada prod
+      //String price = productPrice.toStringAsFixed(1);
+      //String paddedPrice = price.padRight(6);
+
+      for (int j = 0; j < partesProducto.length; j++) {
+        if (j == 0) {
+          bytes += utf8.encode('  $formattedCant ${partesProducto[j]}  $formattedTotal');
+        } else if (j < 3) {
+          bytes += utf8.encode('      ${partesProducto[j]}\n');
+        } else {
+          break;
+        }
+      }
+      //bytes += utf8.encode('$productName: $productQuantity x \$${productPrice.toStringAsFixed(2)} = \$${total.toStringAsFixed(2)}\n');
+    }
+
+    int amountLength = cuentaTotal.toStringAsFixed(0).length;
+    int lineWidth = 16 - (amountLength - 10).clamp(0, 19);
+
+    String totalText = 'TOTAL';
+    String amountText = '\$${cuentaTotal.toStringAsFixed(2)}';
+
+
+    bytes += utf8.encode('--------------------------------\n');
+    Future.delayed(const Duration(milliseconds: 25));
+    int totalLength = totalText.length + amountText.length;
+    int spacesToAdd = lineWidth - totalLength;
+    String padding = ' ' * spacesToAdd.clamp(0, lineWidth);
+    bytes += utf8.encode('\x1D\x21\x11');
+    bytes += utf8.encode('$totalText$padding$amountText\n');
+    bytes += utf8.encode('\x1D\x21\x00');
+    bytes += utf8.encode('--------------------------------\n');
+    bytes += utf8.encode('\x1B\x61\x01'); // Alinear centro
+    bytes += utf8.encode('\x1B\x45\x01'); // Negrita ON
+
+    bytes += utf8.encode('\x1D\x21\x00');
+    bytes += utf8.encode('--------------------------------\n');
+    bytes += utf8.encode('\x1B\x61\x01');// Negrita OFF
+    bytes += utf8.encode('\n\n\n');
+
+    const int chunkSize = 178;
+    for (int i = 0; i < bytes.length; i += chunkSize) {
+      int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
+      await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: false);
+    }
+
+    //await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
+    await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
+  }
+
   //funcion para imprimir imagen android
   Future<void> printImageBW(String imagePath, {int maxWidth = 260, int maxHeight = 75}) async {
     if (characteristic == null) return;
@@ -163,7 +261,6 @@ class SalesPrintService {
         await characteristic!.write(Uint8List.fromList(imageBytes.sublist(i, end)), withoutResponse: false);
         Future.delayed(const Duration(milliseconds: 10));
       }
-
       await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
     } else {
       print("Error al cargar la imagen.");
@@ -208,23 +305,38 @@ class SalesPrintService {
 
     return bytes;
   }
-  //<<<<<< termina funcion para android
+  //termina funcion para android
 
-  Future<void> printImageWithAtkinsonDithering(String imagePath, {int maxWidth = 384, int maxHeight = 200}) async {
+  Future<void> printImageWithAtkinsonDithering(String imagePath, {int maxWidth = 384, int maxHeight = 200, int chunkSize = 182}) async {
     if (characteristic == null) return;
-    ByteData data = await rootBundle.load(imagePath);
-    Uint8List bytes = data.buffer.asUint8List();
-    img.Image? image = img.decodeImage(bytes);
-    if (image != null) {
+
+    try {
+      // Cargar la imagen desde el archivo
+      ByteData data = await rootBundle.load(imagePath);
+      Uint8List bytes = data.buffer.asUint8List();
+      img.Image? image = img.decodeImage(bytes);
+
+      if (image == null) {
+        print("Error al cargar la imagen");
+        return;
+      }
+
       img.Image processedImage = applyAtkinsonDithering(image, maxWidth, maxHeight);
+
       final profile = await CapabilityProfile.load();
       final generator = Generator(PaperSize.mm80, profile);
       List<int> escPosData = generator.image(processedImage);
 
-      await characteristic!.write(Uint8List.fromList(escPosData), withoutResponse: true);
+      for (int i = 0; i < escPosData.length; i += chunkSize) {
+        int end = (i + chunkSize < escPosData.length) ? i + chunkSize : escPosData.length;
+        List<int> chunk = escPosData.sublist(i, end);
+        await characteristic!.write(Uint8List.fromList(chunk), withoutResponse: true);
+      }
+
       await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: true);
-    } else {
-      print("Error al cargar la imagen");
+
+    } catch (e) {
+      print("Error al intentar imprimir: $e");
     }
   }
 
@@ -265,5 +377,4 @@ class SalesPrintService {
     int newPixel = (pixel + error).clamp(0, 255).toInt();
     image.setPixel(x, y, img.getColor(newPixel, newPixel, newPixel));
   }
-
 }

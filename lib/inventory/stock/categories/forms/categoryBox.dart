@@ -90,6 +90,12 @@ class _CategoryBoxState extends State<CategoryBox> {
           }
         });
       } : null,
+      validator: (value) {
+        if (value == null) {
+          return 'Por favor selecciona una opción';
+        }
+        return null;
+      },
       decoration: InputDecoration(
         contentPadding:  EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.02,
             vertical: MediaQuery.of(context).size.width * 0.02),
@@ -121,6 +127,15 @@ class _CategoryBoxState extends State<CategoryBox> {
             color: lock == false  ? AppColors.blackColor.withOpacity(0.5) : AppColors.primaryColor.withOpacity(0.3),
             width: 1.5,
           ),
+        ),errorBorder: OutlineInputBorder(
+          borderRadius: const BorderRadius.only(
+            bottomLeft: Radius.circular(10),
+            bottomRight: Radius.circular(10),
+          ),
+          borderSide: BorderSide(
+            color: lock == false  ? AppColors.blackColor.withOpacity(0.5) : AppColors.primaryColor.withOpacity(0.3),
+            width: 1.5,
+          ),
         ),
       ),
       style: const TextStyle(fontSize: 18, color: Color(0xFF48454C)),
@@ -138,6 +153,7 @@ class _CategoryBoxState extends State<CategoryBox> {
             ],
           );
         }).toList();
+
       },
     );
   }

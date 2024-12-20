@@ -314,12 +314,12 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                               CupertinoPageRoute(
                                 builder: (context) => ProductDetails(
                                   idProduct: products_global[index]['id'],
-                                  nameProd: products_global[index]['product'],
-                                  descriptionProd: products_global[index]['descripcion'],
+                                  nameProd: products_global[index]['product'] ?? '',
+                                  descriptionProd: products_global[index]['descripcion'] ?? '',
                                   catId: products_global[index]['catId'],
-                                  barCode: products_global[index]['barCod'],
+                                  barCode: products_global[index]['barCod'] ?? '', //manejar mejor error
                                   stock: products_global[index]['cant_cart'] == null ? 0 : products_global[index]['cant_cart']['cantidad'],
-                                  precio: products_global[index]['price'],
+                                  precio: products_global[index]['price'] ?? '',//manejar mejor error
                                   onProductModified: () async {
                                     await refreshProducts();
                                     removeOverlay();

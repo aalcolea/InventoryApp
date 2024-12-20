@@ -93,48 +93,77 @@ class _adminInvState extends State<adminInv> {
     });
   }
   void onScanProd(String? resultScanedProd) async {
-    if (resultScanedProd == null || resultScanedProd.isEmpty) {
-      print("codigo invalido");
+    if (resultScanedProd == null || resultScanedProd.isEmpty || isSearching) {
+      print("Código inválido o búsqueda en progreso");
       return;
     }
-    if(isSearching){
-      return;
-    }
+
     scanedProd = resultScanedProd;
     showScaner = false;
     isSearching = true;
-    try{
-      await searchProductByBCode(scanedProd);
-    }catch(e){
-      print('error en la busqueda: $e');
-    }finally{
+
+    try {
+      final productFound = await searchProductByBCode(scanedProd);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(milliseconds: 1000),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).size.width * 0.08,
+              bottom: MediaQuery.of(context).size.width * 0.08,
+              left: MediaQuery.of(context).size.width * 0.02,
+            ),
+            backgroundColor: productFound ? Colors.green : Colors.redAccent,
+            content: Text(
+              productFound
+                  ? 'Producto agregado al carrito'
+                  : 'Producto no encontrado',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: MediaQuery.of(context).size.width * 0.045,
+              ),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      print('Error en la búsqueda: $e');
+    } finally {
       soundScaner();
-      await Future.delayed(Duration(seconds: 3));
       isSearching = false;
     }
-    print('busqueda completada para: $resultScanedProd');
   }
-  ///madnar al servivcio
-  Future<void> searchProductByBCode(String? barcode) async {
+
+  /// Busca el producto por código de barras y retorna si se encontró o no.
+  Future<bool> searchProductByBCode(String? barcode) async {
     if (barcode == null || barcode.isEmpty) {
       setState(() {
         producto = [];
       });
-      return;
+      return false;
     }
-    try{
+
+    try {
       final data = await searchService.searchByBCode(barcode);
-      productsGlobalTemp = (data['productos'] as List).map((item) => item as Map<String, dynamic>).toList();
-      if(productsGlobalTemp.isNotEmpty){
-        final product_id = productsGlobalTemp[0]['id'];
-        Provider.of<CartProvider>(context, listen: false).addProductToCart(product_id, isFromBarCode: true);
-      }else{
-        print('prodcut no encontrado:: $barcode');
+      productsGlobalTemp = (data['productos'] as List)
+          .map((item) => item as Map<String, dynamic>)
+          .toList();
+
+      if (productsGlobalTemp.isNotEmpty) {
+        final productId = productsGlobalTemp[0]['id'];
+        Provider.of<CartProvider>(context, listen: false)
+            .addProductToCart(productId, isFromBarCode: true);
+        return true;
       }
-    }catch(e){
-      print('erro en la busqueda :": $e');
+    } catch (e) {
+      print('Error en la búsqueda: $e');
     }
+
+    return false; // Producto no encontrado
   }
+
+
   void _onItemSelected(int option){
     setState(() {
       print(option);

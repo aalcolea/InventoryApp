@@ -15,12 +15,10 @@ class KeyboardVisibilityManager {
     keyboardVisibilityController = KeyboardVisibilityController();
     keyboardVisibilitySubscription = keyboardVisibilityController.onChange.listen((bool visible) {
       visibleKeyboard = visible;
-      print("Teclado visible: $visibleKeyboard");
     });
   }
 
   void hideKeyboard(BuildContext context) {
-    print('hide');
     FocusScope.of(context).unfocus();
   }
 

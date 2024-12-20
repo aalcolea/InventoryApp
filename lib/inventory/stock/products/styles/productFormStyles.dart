@@ -90,12 +90,14 @@ class TitleModContainer extends StatelessWidget {
   }
 }
 
+//String? Function(String?)? validator,
 
 class TextProdField extends StatelessWidget {
   final bool enabled;
   final FocusNode? focusNode;
   final TextEditingController? controller;
   final VoidCallback? onEditingComplete;
+  final String? Function(String?)? validator;
   final ValueChanged<String>? onChanged;
   final String? text;
   final List<TextInputFormatter>? inputFormatters;
@@ -104,13 +106,13 @@ class TextProdField extends StatelessWidget {
   final TextStyle? textStyle;
 
   const TextProdField({
-    Key? key,
+    super.key,
     this.enabled = true,
     this.focusNode,
     this.controller,
     this.onEditingComplete,
-    this.onChanged, this.text, this.inputFormatters, this.keyboardType, this.label, this.textStyle,
-  }) : super(key: key);
+    this.onChanged, this.text, this.inputFormatters, this.keyboardType, this.label, this.textStyle, this.validator,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -127,10 +129,13 @@ class TextProdField extends StatelessWidget {
       controller: controller,
       onEditingComplete: onEditingComplete,
       onChanged: onChanged,
+      validator: validator,
       decoration: InputDecoration(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.width * 0.11,
+        contentPadding: EdgeInsets.symmetric(
+          vertical: MediaQuery.of(context).size.width * 0.01,
+          horizontal: MediaQuery.of(context).size.width * 0.03,
         ),
+
         label: Text(
           text!,
           style: textStyle ?? defaultStyleLetterColor,
@@ -142,6 +147,30 @@ class TextProdField extends StatelessWidget {
             bottomRight: Radius.circular(10.0),
           ),
           borderSide: BorderSide(color: AppColors.primaryColor),
+        ),focusedBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(10.0),
+            bottomRight: Radius.circular(10.0),
+          ),
+          borderSide: BorderSide(color: AppColors.primaryColor),
+        ),focusedErrorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(10.0),
+            bottomRight: Radius.circular(10.0),
+          ),
+          borderSide: BorderSide(color: AppColors.primaryColor),
+        ),
+
+        errorBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(10.0),
+            bottomRight: Radius.circular(10.0),
+          ),
+          borderSide: BorderSide(color: AppColors.primaryColor),
+        ),
+        errorStyle: const TextStyle(
+          color: Colors.red, // Personalizar el estilo del mensaje de error si es necesario
+          fontSize: 12,
         ),
       ),
     );

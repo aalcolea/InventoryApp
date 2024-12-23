@@ -9,7 +9,7 @@ import 'package:image/image.dart' as img;
 import '../../../themes/colors.dart';
 
 class CategoryService {
-  final String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/categories';
+  final String baseURL = 'https://inventorioapp-ea98995372d9.herokuapp.com/api/categories';
 
   Future<File?> processImage(File imageFile) async {
     try {

@@ -6,6 +6,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:inventory_app/inventory/print/printConnections.dart';
 import 'package:inventory_app/inventory/scanBarCode.dart';
 import 'package:inventory_app/inventory/sellpoint/cart/services/cartService.dart';
+import 'package:inventory_app/inventory/sellpoint/cart/services/scannerService.dart';
 import 'package:inventory_app/inventory/sellpoint/cart/services/searchService.dart';
 import 'package:inventory_app/inventory/sellpoint/cart/views/cart.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/salesHistory.dart';
@@ -56,6 +57,8 @@ class _adminInvState extends State<adminInv> {
   List<dynamic> producto = []; ///despues le quito la lista (alan)
   bool lockScreen = false;
   ListenerPrintService listenerPrintService = ListenerPrintService();
+  /// instancia de auto search
+  final scannerService = BarcodeScannerService();
 
 
   void changeBlurr(){
@@ -143,24 +146,58 @@ class _adminInvState extends State<adminInv> {
       });
       return false;
     }
-
     try {
-      final data = await searchService.searchByBCode(barcode);
-      productsGlobalTemp = (data['productos'] as List)
-          .map((item) => item as Map<String, dynamic>)
-          .toList();
+      final barcodeVariants = BarcodeScannerService().getBarcodeVariants(barcode);
+      for (final variant in barcodeVariants) {
+        final data = await searchService.searchByBCode(variant);
+        productsGlobalTemp = (data['productos'] as List)
+            .map((item) => item as Map<String, dynamic>)
+            .toList();
 
-      if (productsGlobalTemp.isNotEmpty) {
-        final productId = productsGlobalTemp[0]['id'];
-        Provider.of<CartProvider>(context, listen: false)
-            .addProductToCart(productId, isFromBarCode: true);
-        return true;
+        if (productsGlobalTemp.isNotEmpty) {
+          final productId = productsGlobalTemp[0]['id'];
+          Provider.of<CartProvider>(context, listen: false)
+              .addProductToCart(productId, isFromBarCode: true);
+          return true;
+        }
       }
     } catch (e) {
       print('Error en la búsqueda: $e');
     }
 
-    return false; // Producto no encontrado
+    return false;
+  }
+  ///funcion de scanner barcode
+  void handleBarcode(String barcode) async {
+    if (barcode.isEmpty) return;
+  print(barcode);
+    try {
+      final productFound = await searchProductByBCode(barcode);
+  print(barcode);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(milliseconds: 1000),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).size.width * 0.08,
+              bottom: MediaQuery.of(context).size.width * 0.08,
+              left: MediaQuery.of(context).size.width * 0.02,
+            ),
+            backgroundColor: productFound ? Colors.green : Colors.redAccent,
+            content: Text(
+              productFound ? 'Producto agregado al carrito' : 'Producto no encontrado',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: MediaQuery.of(context).size.width * 0.045,
+              ),
+            ),
+          ),
+        );
+      }
+      soundScaner();
+    } catch (e) {
+      print('Error en la búsqueda: $e');
+    }
   }
 
 
@@ -188,6 +225,10 @@ class _adminInvState extends State<adminInv> {
   void initState() {
     // TODO: implement initState
     keyboardVisibilityManager = KeyboardVisibilityManager();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print('hola');
+      scannerService.initialize(context, handleBarcode);
+    });
     super.initState();
   }
 
@@ -229,6 +270,7 @@ class _adminInvState extends State<adminInv> {
   void dispose() {
     // TODO: implement dispose
     keyboardVisibilityManager.dispose();
+    scannerService.dispose();
     super.dispose();
   }
 
@@ -257,8 +299,8 @@ class _adminInvState extends State<adminInv> {
             return Container();
         }
       }
-
-      return PopScope(
+      return scannerService.wrapWithKeyboardListener(
+          PopScope(
         canPop: false,
         onPopInvoked: (didPop) {
           onBackPressed(didPop);
@@ -567,6 +609,6 @@ class _adminInvState extends State<adminInv> {
                   ),
                 ))
           ],
-        ));
+        )));
   }
 }

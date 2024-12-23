@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 
 class SearchService {
   Future<Map<String, dynamic>> searchProductsAndCategories(String searchTerm) async {
-    final url = Uri.parse('https://beauteapp-dd0175830cc2.herokuapp.com/api/search?q=$searchTerm');
+    final url = Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/search?q=$searchTerm');
     final response = await http.get(url);
     if(response.statusCode == 200){
       final data = jsonDecode(response.body);
@@ -17,7 +17,7 @@ class SearchService {
     }
   }
   Future<Map<String,  dynamic>> searchByBCode(String? barCode) async {
-    final url = Uri.parse('https://beauteapp-dd0175830cc2.herokuapp.com/api/searchByBCode?barCode=$barCode');
+    final url = Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/searchByBCode?barCode=$barCode');
     final response = await http.get(url);
     if(response.statusCode == 200){
       final data = jsonDecode(response.body);

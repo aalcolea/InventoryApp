@@ -6,7 +6,7 @@ import '../../../../helpers/utils/toastWidget.dart';
 
 List<Map<String, dynamic>> products_global = [];
 class ProductService {
-  final String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/productos'; //'http://192.168.101.140:8080/api/productos';//
+  final String baseURL = 'https://inventorioapp-ea98995372d9.herokuapp.com/api/productos'; //'http://192.168.101.140:8080/api/productos';//
 
   Future<void> fetchProducts(int categoryId) async {
     final String url = '$baseURL?category_id=$categoryId';
@@ -40,16 +40,18 @@ class ProductService {
     }
   }
 
-  Future<bool> createProduct({required String nombre, required double precio, required String codigoBarras, String? descripcion, int? categoryId,
+  Future<bool> createProduct({required String nombre, required double precio, required String codigoBarras, String? descripcion, int? categoryId, double? precioRet, int? cant
   }) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
     try {
-      final Uri uri = Uri.parse(baseURL);
+      final Uri uri = Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/productos'); ///REGRESAR A BASEurl
       final http.MultipartRequest request = http.MultipartRequest('POST', uri);
       request.headers['Authorization'] = 'Bearer $token';
       request.fields['nombre'] = nombre;
       request.fields['precio'] = precio.toString();
+      request.fields['precioRet'] = precioRet.toString();
+      request.fields['cant'] = cant.toString();
       request.fields['codigo_barras'] = codigoBarras;
       if(descripcion != null){
         request.fields['descripcion'] = descripcion;

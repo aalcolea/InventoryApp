@@ -33,7 +33,7 @@ class _CategoryBoxState extends State<CategoryBox> {
   }
   ///RECORDAR MANDAR A SERVCIO
   Future<void> fetchItems({int limit = 100, int offset = 0}) async {
-    const String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/categories';
+    const String baseURL = 'https://inventorioapp-ea98995372d9.herokuapp.com/api/categories';
     final response = await http.get(Uri.parse(baseURL + '?limit=$limit&offset=$offset'));
 
     if (response.statusCode == 200) {

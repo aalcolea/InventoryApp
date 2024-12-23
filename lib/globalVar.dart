@@ -4,7 +4,7 @@ class SessionManager {
   // Variable booleana para saber si es doctor o asistente
   bool isDoctor = false;
   String Nombre = '';
-  String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api';
+  String baseURL = 'https://inventorioapp-ea98995372d9.herokuapp.com/api';
   // Constructor privado
   SessionManager._internal();
 

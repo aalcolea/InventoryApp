@@ -127,6 +127,8 @@ class _ProductFormState extends State<ProductForm> {
         codigoBarras: barCodeController.text,
         descripcion: descriptionController.text,
         categoryId: _catID,
+        precioRet: double.parse(precioRetailController.text),
+        cant: int.parse(existenciasController.text)
       )
           .then((_) {
         if (mounted) {

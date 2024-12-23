@@ -86,7 +86,7 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
   final FocusNode focusNode = FocusNode();
   double? screenWidth;
   bool hasMoreItems = true;
-  final String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/categories';
+  final String baseURL = 'https://inventorioapp-ea98995372d9.herokuapp.com/api/categories';
   late int selectedCategoryId;
   String? _selectedCategory;
   OverlayEntry? overlayEntry;

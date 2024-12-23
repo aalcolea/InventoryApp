@@ -168,9 +168,9 @@ class _adminInvState extends State<adminInv> {
     return false;
   }
   ///funcion de scanner barcode
-  void _handleBarcode(String barcode) async {
+  void handleBarcode(String barcode) async {
     if (barcode.isEmpty) return;
-
+  print(barcode);
     try {
       final productFound = await searchProductByBCode(barcode);
   print(barcode);
@@ -226,7 +226,8 @@ class _adminInvState extends State<adminInv> {
     // TODO: implement initState
     keyboardVisibilityManager = KeyboardVisibilityManager();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      scannerService.initialize(context, _handleBarcode);
+      print('hola');
+      scannerService.initialize(context, handleBarcode);
     });
     super.initState();
   }

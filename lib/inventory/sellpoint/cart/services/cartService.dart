@@ -110,7 +110,7 @@ class CartProvider extends ChangeNotifier {
     });
     print('Carrito mandado:$transformedCart');
     final response = await http.post(
-      Uri.parse('https://beauteapp-dd0175830cc2.herokuapp.com/api/carrito'),
+      Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/carrito'),
       //Uri.parse('http://192.168.101.140:8080/api/carrito'),
       headers: {
         'Content-Type': 'application/json',

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class StockService {
   //final String baseURL = 'http://192.168.101.140:8080/api/stock';
-  final String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/stock';
+  final String baseURL = 'https://inventorioapp-ea98995372d9.herokuapp.com/api/stock';
 
   Future<bool> updateProductStock ({required int idProduct, required int stockValue, required int controllerValue}) async {
     final url = Uri.parse(baseURL);

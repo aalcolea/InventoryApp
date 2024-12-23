@@ -94,7 +94,7 @@ class _CategoryFormState extends State<CategoryForm> {
     });
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    const baseUrl = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/categories';
+    const baseUrl = 'https://inventorioapp-ea98995372d9.herokuapp.com/api/categories';
     String? token = prefs.getString('jwt_token');
 
     try {

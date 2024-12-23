@@ -38,7 +38,7 @@ class _CategoriesState extends State<Categories> {
   late int selectedCategoryId;
   List<String> selectedCategories = [];
   bool isSelecting = false;
-  final String baseURL = 'https://beauteapp-dd0175830cc2.herokuapp.com/api/categories'; //'http://192.168.101.140:8080/api/categories';
+  final String baseURL = 'https://inventorioapp-ea98995372d9.herokuapp.com/api/categories'; //'http://192.168.101.140:8080/api/categories';
   bool hasMoreItems = true;
   String categoryName = '';
   String? categoryImage;

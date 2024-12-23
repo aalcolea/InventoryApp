@@ -10,8 +10,7 @@
 .history
 .svn/
 .swiftpm/
-migrate_working_dir/
-pubspec.yaml
+migrate_working_dir/g
 # IntelliJ related
 *.iml
 *.ipr

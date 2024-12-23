@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'package:inventory_app/inventory/stock/categories/forms/categoryBox.dart';
-import 'package:inventory_app/inventory/stock/products/styles/productFormStyles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,7 +9,9 @@ import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../../regEx.dart';
 import '../../../kboardVisibilityManager.dart';
+import '../../categories/forms/categoryBox.dart';
 import '../services/productsService.dart';
+import '../styles/productFormStyles.dart';
 
 class ProductForm extends StatefulWidget {
   const ProductForm({super.key});
@@ -28,16 +28,23 @@ class _ProductFormState extends State<ProductForm> {
   FocusNode nameFocus = FocusNode();
   TextEditingController descriptionController = TextEditingController();
   FocusNode descriptionFocus = FocusNode();
-  TextEditingController precioController = TextEditingController();
-  FocusNode precioFocus = FocusNode();
+  TextEditingController precioRetailController = TextEditingController();
+  FocusNode precioRetailFocus = FocusNode();
   TextEditingController barCodeController = TextEditingController();
   FocusNode barCodeFocus = FocusNode();
+  TextEditingController precioPublico = TextEditingController();
+  FocusNode precioPublicoFocus = FocusNode();
+  TextEditingController existenciasController = TextEditingController();
+  FocusNode existenciasFocus = FocusNode();
+  final _formKey = GlobalKey<FormState>();
   //
   double ? screenWidth;
   double ? screenHeight;
   int _catID = 0;
   bool isLoading = false;
   bool helperCloseScan = false;
+  bool isValidationActive = false;
+
 
   @override
   void didChangeDependencies() {
@@ -52,9 +59,25 @@ class _ProductFormState extends State<ProductForm> {
     FocusScope.of(context).requestFocus(nextFocus);
   }
 
+  void look4EmpFields (){
+    _formKey.currentState?.validate();
+  }
+
+  void addTextListeners(List<TextEditingController> controllers) {
+    for (var controller in controllers) {
+      controller.addListener(() {
+        setState(() {
+          isValidationActive ? look4EmpFields() : null;
+        });
+      });
+    }
+  }
+
   @override
   void initState() {
+    existenciasController.text = '1';
     keyboardVisibilityManager = KeyboardVisibilityManager();
+    addTextListeners([nameController, precioRetailController, precioPublico, barCodeController, existenciasController]);
     // TODO: implement initState
     super.initState();
   }
@@ -83,37 +106,53 @@ class _ProductFormState extends State<ProductForm> {
   final productService = ProductService();
 
   Future<void> createProduct() async {
-    if (nameController.text.isEmpty ||
-        precioController.text.isEmpty ||
-        barCodeController.text.isEmpty) {
+    isValidationActive = true;
+
+    // Validar el formulario
+    if (!_formKey.currentState!.validate()) {
       print("Por favor complete todos los campos obligatorios");
       return;
     }
+
     setState(() {
       isLoading = true;
     });
+
     try {
-      await productService.createProduct(nombre: nameController.text, precio: double.parse(precioController.text), codigoBarras: barCodeController.text,
-        descripcion: descriptionController.text, categoryId: _catID,
-      ).then((_){
-        if(mounted){
+      // Llamada al servicio para crear el producto
+      await productService
+          .createProduct(
+        nombre: nameController.text,
+        precio: double.parse(precioPublico.text),
+        codigoBarras: barCodeController.text,
+        descripcion: descriptionController.text,
+        categoryId: _catID,
+      )
+          .then((_) {
+        if (mounted) {
           showOverlay(
-              context,
-              const CustomToast(
-                message: 'Producto creado exitosamente',
-              ));}});
+            context,
+            const CustomToast(
+              message: 'Producto creado exitosamente',
+            ),
+          );
+        }
+      });
+
       print('Producto creado exitosamente');
       Navigator.pop(context, true);
     } catch (e) {
-      print('Error al crear producto');
+      print('Error al crear producto: $e');
     } finally {
       setState(() {
         isLoading = false;
       });
     }
   }
+
   void onSelectedCat (int catID) {
     _catID = catID;
+    isValidationActive ? look4EmpFields() : null;
   }
 
 
@@ -129,7 +168,7 @@ class _ProductFormState extends State<ProductForm> {
     return Scaffold(
       backgroundColor: AppColors.whiteColor,
       body: CustomScrollView(
-        physics: keyboardVisibilityManager.visibleKeyboard ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
             leadingWidth: MediaQuery.of(context).size.width,
@@ -171,7 +210,9 @@ class _ProductFormState extends State<ProductForm> {
         SliverList(
             delegate: SliverChildListDelegate(
             [
-             Column(
+             Form(
+               key: _formKey,
+               child: Column(
                children: [
                  Column(
                    children: [
@@ -191,6 +232,15 @@ class _ProductFormState extends State<ProductForm> {
                              color: AppColors.primaryColor,
                            ),
                            onEditingComplete: () => changeFocus(context, nameFocus, descriptionFocus),
+                           validator: (value) {
+                             if (value == null || value.isEmpty) {
+                               return 'El nombre es obligatorio';
+                             }
+                             if (value.length <= 2) {
+                               return 'El nombre debe tener al menos 3 caracteres';
+                             }
+                             return null;
+                           },
                          )),
                    ],
                  ),
@@ -200,8 +250,8 @@ class _ProductFormState extends State<ProductForm> {
                      TitleModContainer(text: 'Descripción', ),
                      Padding(
                          padding: EdgeInsets.only(
-                           left: MediaQuery.of(context).size.width * 0.03,
-                           right: MediaQuery.of(context).size.width * 0.03),
+                             left: MediaQuery.of(context).size.width * 0.03,
+                             right: MediaQuery.of(context).size.width * 0.03),
                          child: TextProdField(
                            focusNode: descriptionFocus,
                            controller: descriptionController,
@@ -212,85 +262,153 @@ class _ProductFormState extends State<ProductForm> {
                            textStyle: const TextStyle(
                              color: AppColors.primaryColor,
                            ),
-                           onEditingComplete: () => changeFocus(context, descriptionFocus, precioFocus),
+                           onEditingComplete: () => changeFocus(context, descriptionFocus, precioRetailFocus),
                          )),
                    ],
                  ),
 
                  Column(
                    children: [
-                     TitleModContainer(text: 'Precio', ),
+                     TitleModContainer(text: 'Precio del proveedor', ),
                      Padding(
                          padding: EdgeInsets.only(
-                           left: MediaQuery.of(context).size.width * 0.03,
-                           right: MediaQuery.of(context).size.width * 0.03),
+                             left: MediaQuery.of(context).size.width * 0.03,
+                             right: MediaQuery.of(context).size.width * 0.03),
                          child: TextProdField(
-                           focusNode: precioFocus,
-                           controller: precioController,
+                           focusNode: precioRetailFocus,
+                           controller: precioRetailController,
                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
                            inputFormatters: [
                              RegEx(type: InputFormatterType.numeric),
                            ],
-                           text: 'Precio del producto',
+                           text: 'Precio del producto retail',
                            textStyle: const TextStyle(
                              color: AppColors.primaryColor,
                            ),
-                           onEditingComplete: () => changeFocus(context, precioFocus, barCodeFocus),
+                           onEditingComplete: () => changeFocus(context, precioRetailFocus, precioPublicoFocus),
+                           validator: (value) {
+                             if (value == null || value.isEmpty) {
+                               return 'El precio es obligatorio';
+                             }
+                             return null;
+                           },
                          )),
                    ],
                  ),
-              Column(
-                children: [
-                  TitleModContainer(text: 'Código de barras'),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.03),
-                    child: Builder(builder: (context){
-                      return TextField(
-                        focusNode: barCodeFocus,
-                        controller: barCodeController,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          RegEx(type: InputFormatterType.numeric),
-                        ],
-                        decoration: InputDecoration(
-                          hintText: 'Código de barras del producto',
-                          hintStyle: const TextStyle(color: AppColors.primaryColor),
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.qr_code_scanner, color: AppColors.primaryColor),
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context ,
-                                isScrollControlled: true,
-                                builder: (BuildContext context) {
-                                    return ScanBarCode(
-                                      onShowScan: (show) {
-                                        Navigator.of(context).pop();
-                                      },
-                                      onScanProd: onScanProd
-                                    );
-                                },
-                              ).then((_) async {
-                                  await Future.delayed(Duration(milliseconds: 150));
-                                  //helperCloseScan = false;
-                              });
-                            },
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
-                            borderRadius: BorderRadius.circular(10.0),
-                          ),
-                        ),
-                        style: const TextStyle(color: AppColors.primaryColor),
-                      );
-                      }),
-                  ),
-                ],
-              ),
-            Column(
+                 Column(
+                   children: [
+                     TitleModContainer(text: 'Precio al público', ),
+                     Padding(
+                         padding: EdgeInsets.only(
+                             left: MediaQuery.of(context).size.width * 0.03,
+                             right: MediaQuery.of(context).size.width * 0.03),
+                         child: TextProdField(
+                           focusNode: precioPublicoFocus,
+                           controller: precioPublico,
+                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                           inputFormatters: [
+                             RegEx(type: InputFormatterType.numeric),
+                           ],
+                           text: 'Precio de venta al público',
+                           textStyle: const TextStyle(
+                             color: AppColors.primaryColor,
+                           ),
+                           onEditingComplete: () => changeFocus(context, precioPublicoFocus, barCodeFocus),
+                           validator: (value) {
+                             if (value == null || value.isEmpty) {
+                               return 'El precio es obligatorio';
+                             }
+                             return null;
+                           },
+                         )),
+                   ],
+                 ),
+                 Column(
+                   children: [
+                     TitleModContainer(text: 'Código de barras'),
+                     Padding(
+                       padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.03),
+                       child: Builder(builder: (context){
+                         return TextField(
+                           focusNode: barCodeFocus,
+                           controller: barCodeController,
+                           keyboardType: TextInputType.number,
+                           inputFormatters: [
+                             RegEx(type: InputFormatterType.numeric),
+                           ],
+                           decoration: InputDecoration(
+                             hintText: 'Código de barras del producto',
+                             hintStyle: const TextStyle(color: AppColors.primaryColor),
+                             suffixIcon: IconButton(
+                               icon: const Icon(Icons.qr_code_scanner, color: AppColors.primaryColor),
+                               onPressed: () {
+                                 showModalBottomSheet(
+                                   context: context ,
+                                   isScrollControlled: true,
+                                   builder: (BuildContext context) {
+                                     return ScanBarCode(
+                                         onShowScan: (show) {
+                                           Navigator.of(context).pop();
+                                         },
+                                         onScanProd: onScanProd
+                                     );
+                                   },
+                                 ).then((_) async {
+                                   await Future.delayed(const Duration(milliseconds: 150));
+                                   //helperCloseScan = false;
+                                 });
+                               },
+                             ),
+                             enabledBorder: const OutlineInputBorder(
+                               borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
+                               borderRadius: BorderRadius.only(
+                                 bottomLeft: Radius.circular(10),
+                                 bottomRight: Radius.circular(10),
+                               ),
+                             ),
+                             focusedBorder: const OutlineInputBorder(
+                               borderSide: BorderSide(color: AppColors.primaryColor, width: 2.0),
+                               borderRadius: BorderRadius.only(
+                                 bottomLeft: Radius.circular(10),
+                                 bottomRight: Radius.circular(10),
+                               ),
+                             ),
+                           ),
+                           style: const TextStyle(color: AppColors.primaryColor),
+                         );
+                       }),
+                     ),
+                   ],
+                 ),
+                 Column(
+                   children: [
+                     TitleModContainer(text: 'Existencias', ),
+                     Padding(
+                         padding: EdgeInsets.only(
+                             left: MediaQuery.of(context).size.width * 0.03,
+                             right: MediaQuery.of(context).size.width * 0.03),
+                         child: TextProdField(
+                           focusNode: existenciasFocus,
+                           controller: existenciasController,
+                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                           inputFormatters: [
+                             RegEx(type: InputFormatterType.numeric),
+                           ],
+                           text: 'Existencias en el establecimiento',
+                           textStyle: const TextStyle(
+                             color: AppColors.primaryColor,
+                           ),
+                           onEditingComplete: () => changeFocus(context, precioPublicoFocus, barCodeFocus),
+                           validator: (value) {//TODO checar que es mejor para los productos agranel
+                             if (value == '0' || value == null || value.isEmpty) {
+                               return 'Existencias no puede ser 0';
+                             }
+                             return null;
+                           },)),
+                   ],
+                 ),
+
+                 Column(
                      children: [
                        TitleModContainer(text: 'Categoria'),
                        Padding(padding: EdgeInsets.only(
@@ -299,29 +417,29 @@ class _ProductFormState extends State<ProductForm> {
                            child: CategoryBox(formType: 1, onSelectedCat: onSelectedCat))]),
 
                  Padding(padding: EdgeInsets.only(
-                     top: MediaQuery.of(context).size.width * 0.07,
-                     left: MediaQuery.of(context).size.width * 0.03,
-                     right: MediaQuery.of(context).size.width * 0.03,
+                   top: MediaQuery.of(context).size.width * 0.07,
+                   left: MediaQuery.of(context).size.width * 0.03,
+                   right: MediaQuery.of(context).size.width * 0.03,
                  ),
-                 child: ElevatedButton(
-                   onPressed: createProduct,
-                   style: ElevatedButton.styleFrom(
-                     shape: RoundedRectangleBorder(
-                       borderRadius: BorderRadius.circular(10),
-                     ),
-                     backgroundColor: AppColors.primaryColor,
-                     padding: EdgeInsets.symmetric(
-                       horizontal: MediaQuery.of(context).size.width * 0.15,
-                       vertical: MediaQuery.of(context).size.width * 0.03,
-                     ),
-                   ), child: !isLoading ? Text('Crear Producto', style: TextStyle(
-                     fontSize: MediaQuery.of(context).size.width * 0.06,
-                     color: AppColors.whiteColor
-                 ),) : const CircularProgressIndicator(color: Colors.white,),
-                 ),),
+                   child: ElevatedButton(
+                     onPressed: createProduct,
+                     style: ElevatedButton.styleFrom(
+                       shape: RoundedRectangleBorder(
+                         borderRadius: BorderRadius.circular(10),
+                       ),
+                       backgroundColor: AppColors.primaryColor,
+                       padding: EdgeInsets.symmetric(
+                         horizontal: MediaQuery.of(context).size.width * 0.15,
+                         vertical: MediaQuery.of(context).size.width * 0.03,
+                       ),
+                     ), child: !isLoading ? Text('Crear Producto', style: TextStyle(
+                       fontSize: MediaQuery.of(context).size.width * 0.06,
+                       color: AppColors.whiteColor
+                   ),) : const CircularProgressIndicator(color: Colors.white,),
+                   ),),
 
                ],
-             )
+             ),),
             ]
           )),
         ],

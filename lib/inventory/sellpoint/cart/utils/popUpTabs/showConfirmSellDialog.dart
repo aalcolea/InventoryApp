@@ -38,7 +38,7 @@ Future<bool> showConfirmSellDialog(BuildContext context) async {
                       horizontal: MediaQuery.of(context).size.width * 0.07,
                       vertical: MediaQuery.of(context).size.height * 0.02),
                   child: Text(
-                    'Estas seguro de que deseas enviar el carrito?',
+                    '¿Seguro que quieres completar esta venta?',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: MediaQuery.of(context).size.width * 0.045,
@@ -60,7 +60,7 @@ Future<bool> showConfirmSellDialog(BuildContext context) async {
                         decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
-                              color: AppColors.primaryColor,
+                              color: AppColors.redDelete,
                               width: 2.5,
                             ),
                           ),
@@ -70,7 +70,7 @@ Future<bool> showConfirmSellDialog(BuildContext context) async {
                           style: TextStyle(
                             fontSize:
                             MediaQuery.of(context).size.width * 0.05,
-                            color: AppColors.primaryColor,
+                            color: AppColors.redDelete,
                           ),
                         ),
                       ),
@@ -86,7 +86,7 @@ Future<bool> showConfirmSellDialog(BuildContext context) async {
                         decoration: const BoxDecoration(
                           border: Border(
                             bottom: BorderSide(
-                              color: AppColors.redDelete,
+                              color: AppColors.primaryColor,
                               width: 2.5,
                             ),
                           ),
@@ -96,7 +96,7 @@ Future<bool> showConfirmSellDialog(BuildContext context) async {
                           style: TextStyle(
                             fontSize:
                             MediaQuery.of(context).size.width * 0.05,
-                            color: AppColors.redDelete,
+                            color: AppColors.primaryColor,
                           ),
                         ),
                       ),

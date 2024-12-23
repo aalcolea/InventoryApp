@@ -49,7 +49,7 @@ class _TestPDFState extends State<TestPDF> {
     detallesTicket = widget.ticket[0]['detalles'];
     print('jeje hola $detallesTicket');
     pdf = pw.Document();
-    final imageBytes = await rootBundle.load('assets/imgLog/test2.jpeg');
+    final imageBytes = await rootBundle.load('assets/imgLog/logoTest.png');
     final image = pw.MemoryImage(imageBytes.buffer.asUint8List());
     pdf.addPage(
       pw.MultiPage(

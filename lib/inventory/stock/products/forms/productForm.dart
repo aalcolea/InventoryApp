@@ -420,6 +420,7 @@ class _ProductFormState extends State<ProductForm> {
 
                  Padding(padding: EdgeInsets.only(
                    top: MediaQuery.of(context).size.width * 0.07,
+                   bottom: MediaQuery.of(context).size.width * 0.1,
                    left: MediaQuery.of(context).size.width * 0.03,
                    right: MediaQuery.of(context).size.width * 0.03,
                  ),

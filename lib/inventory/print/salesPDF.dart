@@ -332,7 +332,7 @@ class _SalesPDFState extends State<SalesPDF> {
                                           textAlign: pw.TextAlign.center,
                                         ),
                                         pw.Text(
-                                          '$totalVenta',
+                                          totalVenta.toStringAsFixed(2),
                                           style: const pw.TextStyle(
                                             fontSize: 11,
                                             color: PdfColors.black,

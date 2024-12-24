@@ -91,6 +91,7 @@ class _SalesListState extends State<SalesList> {
 
   @override
   Widget build(BuildContext context) {
+    print(productsFilterd);
     return Container(
       color: AppColors.bgColor,
       child: Column(
@@ -119,7 +120,7 @@ class _SalesListState extends State<SalesList> {
                                 Row(
                                   children: [
                                     Text(
-                                      "Cant.:",
+                                      "Cant.: ",
                                       style: TextStyle(
                                           color: AppColors.primaryColor.withOpacity(0.5),
                                           fontSize: MediaQuery.of(context).size.width * 0.035),

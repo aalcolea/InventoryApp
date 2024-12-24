@@ -308,6 +308,7 @@ class _adminInvState extends State<adminInv> {
         child: Stack(
           children: [
             Scaffold(
+              backgroundColor: AppColors.bgColor,
                 endDrawer: navBar(
                     onItemSelected: _onItemSelected,
                     onShowBlur: _onShowBlur,
@@ -319,7 +320,8 @@ class _adminInvState extends State<adminInv> {
                 body: Stack(
                     children: [
                       Container(
-                        color: AppColors.whiteColor,
+                        margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.03),
+                        color: AppColors.bgColor,
                         padding: EdgeInsets.only(
                             top: MediaQuery.of(context).size.height * 0.04),
                         child: Column(

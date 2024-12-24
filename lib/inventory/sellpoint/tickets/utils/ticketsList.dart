@@ -39,6 +39,7 @@ class _TicketslistState extends State<Ticketslist> {
   PrintService printService = PrintService();
   late String formattedDate;
   List<Map<String, dynamic>> ticketTemp = [];
+  int cantTotal = 0;
 
   late KeyboardVisibilityManager keyboardVisibilityManager;
   List<ExpansionTileController>? tileController = [];
@@ -101,6 +102,7 @@ class _TicketslistState extends State<Ticketslist> {
         });
       }
     });
+    cantTotal = 0;
   }
 
   Future<void> fetchSales(String? initData, String? finalData) async{
@@ -290,22 +292,6 @@ class _TicketslistState extends State<Ticketslist> {
                                   ),
                                   Text(
                                     '${tickets[index]['fecha']}',
-                                    style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.width * 0.04),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Cantidad total: ',
-                                    style: TextStyle(
-                                        fontSize: MediaQuery.of(context).size.width * 0.04
-                                    ),
-                                  ),
-                                  Text(
-                                    '${tickets[index]['cantidad']} pzs',
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: MediaQuery.of(context).size.width * 0.04),

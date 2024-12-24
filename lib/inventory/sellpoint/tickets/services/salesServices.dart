@@ -41,21 +41,24 @@ class SalesServices{
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
+      print('jajaja $data');
       Map<String, Map<String, dynamic>> productosMap = {};
       var formatter = new DateFormat('dd-MM-yyyy');
       data.expand((venta) => venta['detalles']).forEach((detalle) {
         final producto = detalle['producto'];
-        final idProd = producto['id'];
+        final idProd = producto['id'].toString();
         final nombreProducto = producto['nombre'];
         final fecha = DateTime.parse(producto['created_at']).toString();
         DateTime fecha_venta = DateTime.parse(data[0]['created_at']);
         final int cantidad = int.tryParse(detalle['cantidad'].toString()) ?? 0;
         final double precio = double.tryParse(detalle['precio'].toString()) ?? 0.0;
-        if (productosMap.containsKey(idProd) && productosMap.containsKey(nombreProducto)) {
+        if (productosMap.containsKey(idProd)) {
+          print('if');
           productosMap[idProd]!['cantidad'] += cantidad;
           productosMap[idProd]!['total'] += cantidad * precio;
         }else{
-          productosMap[idProd.toString()] = {
+          print('else');
+          productosMap[idProd] = {
             'nombre': nombreProducto,
             'cantidad': cantidad,
             'precio': precio,

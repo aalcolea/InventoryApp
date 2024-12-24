@@ -158,6 +158,9 @@ class _CategoriesState extends State<Categories> {
     }
     if (items.length % 6 != 0) {
       items.add({'category': 'addCat', 'id': 'addCat'});
+    } else {
+      items.add({'category': 'addCat', 'id': 'addCat'});
+      return;
     }
   }
 

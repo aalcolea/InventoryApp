@@ -57,7 +57,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    bool isDocLog = false;
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(

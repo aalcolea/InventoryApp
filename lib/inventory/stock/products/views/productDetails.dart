@@ -18,13 +18,14 @@ class ProductDetails extends StatefulWidget {
   final String barCode;
   final int stock;
   final double precio;
+  final double precioRetail;
   final int catId;
   final Future<void> Function() onProductModified;
   final void Function(
       bool
       ) onShowBlur;
 
-  const ProductDetails({super.key, required this.idProduct, required this.nameProd, required this.descriptionProd, required this.barCode, required this.stock, required this.precio, required this.catId, required this.onProductModified, required this.onShowBlur});
+  const ProductDetails({super.key, required this.idProduct, required this.nameProd, required this.descriptionProd, required this.barCode, required this.stock, required this.precio, required this.catId, required this.onProductModified, required this.onShowBlur, required this.precioRetail});
 
   @override
   State<ProductDetails> createState() => _ProductDetailsState();
@@ -39,6 +40,8 @@ class _ProductDetailsState extends State<ProductDetails> {
   FocusNode descriptionFocus = FocusNode();
   TextEditingController precioController = TextEditingController();
   FocusNode precioFocus = FocusNode();
+  TextEditingController precioRetailController = TextEditingController();
+  FocusNode precioRetailFocus = FocusNode();
   TextEditingController stockController = TextEditingController();
   FocusNode stockFocus = FocusNode();
   TextEditingController barCodeController = TextEditingController();
@@ -53,6 +56,7 @@ class _ProductDetailsState extends State<ProductDetails> {
   String? oldNameProd;
   String? oldDescriptionProd;
   String? oldPrecioProd;
+  String? oldPrecioRetailProd;
   String? oldBarcode;
   String? oldStock;
   int _catID = 0;
@@ -115,6 +119,7 @@ class _ProductDetailsState extends State<ProductDetails> {
     barCodeController.text = widget.barCode.toString();
     stockController.text = widget.stock.toString();
     precioController.text = widget.precio.toString();
+    precioRetailController.text = widget.precioRetail.toString();
     _catID =  widget.catId;
     keyboardVisibilityManager = KeyboardVisibilityManager();
     // TODO: implement initState
@@ -188,7 +193,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                             fontWeight: FontWeight.bold,
                           ),)
                       ])),),
-                  Spacer(),
+                  const Spacer(),
                   IconButton(//onPressed del icono de modificar
                       onPressed: editProd == false ? () {
                         setState(() {
@@ -199,11 +204,13 @@ class _ProductDetailsState extends State<ProductDetails> {
                           oldBarcode = barCodeController.text;
                           oldStock = stockController.text;
                           oldPrecioProd = precioController.text;
+                          oldPrecioRetailProd = precioRetailController.text;
                         });
                       } : (){//onPressedDelBoton
                         setState(() {//onPresseddelGuardar
                           _catID != widget.catId || nameController.text != oldNameProd! || descriptionController.text != oldDescriptionProd! ||
-                              barCodeController.text != oldBarcode! || stockController.text != oldStock! || precioController.text != oldPrecioProd! ?
+                              barCodeController.text != oldBarcode! || stockController.text != oldStock! || precioController.text != oldPrecioProd!
+                              || precioRetailController.text != oldPrecioRetailProd! ?
                           updateProduct() :  showOverlay(
                               context,
                               const CustomToast(
@@ -281,6 +288,50 @@ class _ProductDetailsState extends State<ProductDetails> {
                           Row(
                             children: [
                               Expanded(
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        alignment: Alignment.center,
+                                        margin: EdgeInsets.only(
+                                          top: MediaQuery.of(context).size.width * 0.04,
+                                          left: MediaQuery.of(context).size.width * 0.03,
+                                          right: MediaQuery.of(context).size.width * 0.03,
+                                        ),
+                                        height: MediaQuery.of(context).size.width * 0.09,
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.primaryColor,
+                                          borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(10.0),
+                                            topRight: Radius.circular(10.0),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          'Cantidad',
+                                          style: TextStyle(
+                                            color: AppColors.whiteColor,
+                                            fontSize: MediaQuery.of(context).size.width * 0.045,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          left: MediaQuery.of(context).size.width * 0.03,
+                                          right: MediaQuery.of(context).size.width * 0.03,
+                                        ),
+                                        child: TextProdField(
+                                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                          inputFormatters: [RegEx(type: InputFormatterType.numeric)],
+                                          controller: stockController,
+                                          enabled: editProd,
+                                          text: 'Existencias',
+                                        ),)
+                                    ],
+                                  )),
+                            ],),
+                          Row(
+                            children: [
+                              Expanded(
                                 child: Column(
                                   children: [
                                     Container(
@@ -299,7 +350,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                         ),
                                       ),
                                       child: Text(
-                                        'Cant. Disponible',
+                                        'Precio retail',
                                         style: TextStyle(
                                           color: AppColors.whiteColor,
                                           fontSize: MediaQuery.of(context).size.width * 0.045,
@@ -315,9 +366,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                                     child: TextProdField(
                                       keyboardType: TextInputType.number,
                                       inputFormatters: [RegEx(type: InputFormatterType.numeric)],
-                                      controller: stockController,
+                                      controller: precioRetailController,
                                       enabled: editProd,
-                                      text: 'Piezas',
+                                      text: 'MXN',
                                     ))
                                   ],
                                 )),
@@ -340,7 +391,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                         ),
                                       ),
                                       child: Text(
-                                        'Precio',
+                                        'Precio de venta',
                                         style: TextStyle(
                                           color: AppColors.whiteColor,
                                           fontSize: MediaQuery.of(context).size.width * 0.045,
@@ -363,6 +414,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                   ],
                                 )),
                           ],),
+
                           SizedBox(height: editProd ? 0 : 15,),
                           Visibility(
                               visible: isLoading,

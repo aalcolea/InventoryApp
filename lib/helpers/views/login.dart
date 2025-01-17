@@ -27,175 +27,23 @@ class _LoginState extends State<Login> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              Padding(
-                padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).size.width * 0.32),
-                child: CircleAvatar(
-                  backgroundColor: AppColors3.whiteColor,
-                  radius: MediaQuery.of(context).size.height * 0.21,
-                  /*backgroundImage:
-                      const AssetImage("assets/imgLog/logoBeauteWhite.png")*/
-                ),
-              ),
               Container(
-                height: MediaQuery.of(context).size.height * 0.065,
-                margin: EdgeInsets.only(
-                  left: MediaQuery.of(context).size.width * 0.095,
-                  right: MediaQuery.of(context).size.width * 0.095,
-                  bottom: MediaQuery.of(context).size.width * 0.065,
-                ),
-                child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        showPinEntryScreen = true;
-                        isDocLog = true;
-                        userIdHelper = 1;
-                        /*   Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => PinEntryScreen(
-                                  userId: 1,
-                                  docLog: isDocLog,
-                                )),
-                      );*/
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      splashFactory: InkRipple.splashFactory,
-                      elevation: 10,
-                      surfaceTintColor: AppColors3.secundaryColor.withOpacity(0.1),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        side: const BorderSide(
-                            color: AppColors3.secundaryColor, width: 2),
-                      ),
-                      backgroundColor: AppColors3.secundaryColor,
-                    ),
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(
-                              left: MediaQuery.of(context).size.width * 0.035, right: MediaQuery.of(context).size.width * 0.015),
-                          child: SvgPicture.asset(
-                            'assets/imgLog/docVector2.svg',
-                            color: AppColors3.primaryColor,
-                          ),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              left: MediaQuery.of(context).size.width * 0.015,
-                              right: MediaQuery.of(context).size.width * 0.15),
-                          height: MediaQuery.of(context).size.width * 0.09,
-                          width: MediaQuery.of(context).size.width * 0.006,
-                          decoration: BoxDecoration(
-                            color: AppColors3.primaryColor,
-                            border: Border.all(width: 0.5, color: AppColors3.primaryColor),
-                          ),
-                        ),
-                        const Center(
-                          child: Text(
-                            'Usuario 1',
-                            style: TextStyle(
-                              color: AppColors3.primaryColor,
-                              fontSize: 26,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )),
-              ),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.065,
-                margin: EdgeInsets.only(
-                  left: MediaQuery.of(context).size.width * 0.095,
-                  right: MediaQuery.of(context).size.width * 0.095,
-                  bottom: MediaQuery.of(context).size.width * 0.065,
-                ),
-                child: ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        showPinEntryScreen = true;
-                        userIdHelper = 2;
-                        isDocLog = true;
-                        /* Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => PinEntryScreen(
-                                  userId: 2,
-                                  docLog: isDocLog,
-                                )),
-                      );*/
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      splashFactory: InkRipple.splashFactory,
-                      elevation: 10,
-                      surfaceTintColor: AppColors3.secundaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10.0),
-                        side: const BorderSide(
-                            color: AppColors3.secundaryColor, width: 2),
-                      ),
-                      backgroundColor: AppColors3.secundaryColor,
-                    ),
-                    child: Row(
-                      children: [
-                        Padding(
-                            padding: EdgeInsets.only(
-                                left:
-                                    MediaQuery.of(context).size.width * 0.035, right: MediaQuery.of(context).size.width * 0.015),
-                            child: SvgPicture.asset(
-                                'assets/imgLog/docVector2.svg', color: AppColors3.primaryColor,) /*Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: MediaQuery.of(context).size.width * 0.1,
-                          ),*/
-                            ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              left: MediaQuery.of(context).size.width * 0.015,
-                              right: MediaQuery.of(context).size.width * 0.15),
-                          height: MediaQuery.of(context).size.width * 0.09,
-                          width: MediaQuery.of(context).size.width * 0.006,
-                          decoration: BoxDecoration(
-                            color: AppColors3.primaryColor,
-                            border: Border.all(width: 0.5, color: AppColors3.primaryColor),
-                          ),
-                        ),
-                        const Center(
-                          child: Text(
-                            'Usuario 2',
-                            style: TextStyle(
-                              color: AppColors3.primaryColor,
-                              fontSize: 26,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )),
+                padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.125),
+                margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.4),
+                child: Image.asset('assets/imgLog/kodaLogo.jpg'),
               ),
               Container(
                 height: MediaQuery.of(context).size.height * 0.065,
                 margin: EdgeInsets.only(
                     left: MediaQuery.of(context).size.width * 0.095,
                     right: MediaQuery.of(context).size.width * 0.095,
-                    bottom: MediaQuery.of(context).size.width * 0.08),
+                    bottom: MediaQuery.of(context).size.width * 0.35),
                 child: ElevatedButton(
                     onPressed: () {
                       setState(() {
                         showPinEntryScreen = true;
                         userIdHelper = 3;
                         isDocLog = false;
-                        /*Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => PinEntryScreen(
-                                userId: 3,
-                                docLog: isDocLog,
-                              )),
-                        );*/
                       });
                     },
                     style: ElevatedButton.styleFrom(
@@ -221,7 +69,7 @@ class _LoginState extends State<Login> {
                         Container(
                           margin: EdgeInsets.only(
                               left: MediaQuery.of(context).size.width * 0.015,
-                              right: MediaQuery.of(context).size.width * 0.15),
+                              right: MediaQuery.of(context).size.width * 0.08),
                           height: MediaQuery.of(context).size.width * 0.09,
                           width: MediaQuery.of(context).size.width * 0.006,
                           decoration: BoxDecoration(
@@ -229,15 +77,13 @@ class _LoginState extends State<Login> {
                             border: Border.all(width: 0.5, color: AppColors3.primaryColor),
                           ),
                         ),
-                        const Center(
-                          child: Text(
-                            'Asistente',
+                        Text(
+                            'Usuario general',
                             style: TextStyle(
                               color: AppColors3.primaryColor,
-                              fontSize: 26,
+                              fontSize: MediaQuery.of(context).size.width * 0.06,
                             ),
                           ),
-                        ),
                       ],
                     )),
               ),

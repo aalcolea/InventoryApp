@@ -18,10 +18,13 @@ class ProductService {
 
       products_global = data.map((product) {
         double price = 0.0;
+        double priceRet = 0.0;
         if (product['precio'] is String) {
           price = double.tryParse(product['precio']) ?? 0.0;
+          priceRet = double.tryParse(product['precioRet']) ?? 0.0;
         } else if (product['precio'] is num) {
           price = (product['precio'] as num).toDouble();
+          priceRet = (product['precioRet'] as num).toDouble();
         }
 
         return {
@@ -31,6 +34,7 @@ class ProductService {
           'barCod': product['codigo_barras'],
           'descripcion': product['descripcion'],
           'price': price,
+          'precioRet': priceRet,
           'cant_cart': product['stock'],
           'product_id': product['id'],
         };

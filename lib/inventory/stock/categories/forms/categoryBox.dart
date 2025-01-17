@@ -28,7 +28,6 @@ class _CategoryBoxState extends State<CategoryBox> {
     fetchItems();
     widget.listernerCatBox?.registrarObservador((newValue){
       lock = newValue;
-      print('newVak $newValue');
     });
   }
   ///RECORDAR MANDAR A SERVCIO
@@ -45,7 +44,8 @@ class _CategoryBoxState extends State<CategoryBox> {
             'category': item['nombre'],
             'image': item['foto'],
           };
-        }).where((item) => item['category'] != null).toList();
+        }).where((item) => item['category'] != null && item['id'] != null).toList();
+        print('items $items');
 
         if (widget.selectedCatId != null) {
           categorySel = items.firstWhere(
@@ -104,7 +104,7 @@ class _CategoryBoxState extends State<CategoryBox> {
         ),
         focusedBorder: widget.formType == 1 ? const OutlineInputBorder(
           borderRadius: BorderRadius.only(bottomLeft: Radius.circular(10), bottomRight: Radius.circular(10)),
-          borderSide: const BorderSide(
+          borderSide: BorderSide(
             color: AppColors.primaryColor,
             width: 0.7,
           ),
@@ -153,7 +153,6 @@ class _CategoryBoxState extends State<CategoryBox> {
             ],
           );
         }).toList();
-
       },
     );
   }

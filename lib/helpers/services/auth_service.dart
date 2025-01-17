@@ -57,6 +57,7 @@ class PinEntryScreenState extends State<PinEntryScreen> with SingleTickerProvide
     // TODO: implement initState
     super.initState();
     isDocLog = widget.docLog;
+    print('widget ${widget.userId}');
     aniController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 20),
@@ -110,7 +111,7 @@ class PinEntryScreenState extends State<PinEntryScreen> with SingleTickerProvide
         if(mounted){
           Navigator.of(context).pushAndRemoveUntil(
             CupertinoPageRoute(
-              builder: (context) => adminInv(docLog: SessionManager.instance.isDoctor,),
+              builder: (context) => adminInv(),
             ),
                 (Route<dynamic> route) => false,
           );

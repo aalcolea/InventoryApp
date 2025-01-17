@@ -12,10 +12,12 @@ import '../themes/colors.dart';
 import 'package:share_plus/share_plus.dart';
 
 class SalesPDF extends StatefulWidget {
-
+  final String nameEstableciment;
+  final String direccion;
+  final String email;
   final List<Map<String, dynamic>> sales;
 
-  const SalesPDF({super.key, required this.sales});
+  const SalesPDF({super.key, required this.sales, required this.nameEstableciment, required this.direccion, required this.email});
 
   @override
   _SalesPDFState createState() => _SalesPDFState();
@@ -51,8 +53,8 @@ class _SalesPDFState extends State<SalesPDF> {
       totalVenta += producto['total'];
     }
     pdf = pw.Document();
-    final imageBytes = await rootBundle.load('assets/imgLog/logoTest.png');
-    final image = pw.MemoryImage(imageBytes.buffer.asUint8List());
+    /*final imageBytes = await rootBundle.load('assets/imgLog/logoTest.png');
+    final image = pw.MemoryImage(imageBytes.buffer.asUint8List());*/
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a5,
@@ -67,10 +69,10 @@ class _SalesPDFState extends State<SalesPDF> {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Image(
+                        /*pw.Image(
                             image,
                             width: 75
-                        ),
+                        ),*/
                         pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.end,
                           children: [
@@ -106,7 +108,7 @@ class _SalesPDFState extends State<SalesPDF> {
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
                               pw.Text(
-                                '[Nombre y slogan de tu compañia]',
+                                widget.nameEstableciment,
                                 style: pw.TextStyle(
                                     fontSize: 12,
                                     color: PdfColors.blue900,
@@ -357,7 +359,7 @@ class _SalesPDFState extends State<SalesPDF> {
                     mainAxisAlignment: pw.MainAxisAlignment.end,
                     children: [
                       pw.Text(
-                        '[Nombre de la empresa][Calle,ciudad y código postal][Teléfono][Correo electrónico]',
+                        '${widget.nameEstableciment} ${widget.direccion} ${widget.email}',
                         style: const pw.TextStyle(
                           fontSize: 8,
                           color: PdfColors.blue900,
@@ -391,7 +393,7 @@ class _SalesPDFState extends State<SalesPDF> {
                 if (pdfPath != null) {
                   await Share.shareXFiles(
                     [XFile(pdfPath!)],
-                    text: '¡Gracias por su confianza en Beaute clinique!',
+                    text: '¡Gracias por su confianza!',
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(

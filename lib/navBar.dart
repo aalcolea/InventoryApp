@@ -12,7 +12,6 @@ import 'inventory/listenerPrintService.dart';
 import 'inventory/print/printConnections.dart';
 
 class navBar extends StatefulWidget {
-  final bool isDoctorLog;
   final void Function(bool) onShowBlur;
   final Function(PrintService)? onPrintServiceComunication;
   final PrintService? printServiceAfterInitConn;
@@ -21,7 +20,7 @@ class navBar extends StatefulWidget {
   final void Function(bool) onLockScreen;
   final String currentScreen;
 
-  const navBar({super.key, required this.onItemSelected, required this.onShowBlur, required this.isDoctorLog, required this.currentScreen,
+  const navBar({super.key, required this.onItemSelected, required this.onShowBlur, required this.currentScreen,
     this.onPrintServiceComunication, this.printServiceAfterInitConn, this.btChar, required this.onLockScreen});
 
   @override
@@ -95,6 +94,7 @@ class _navBarState extends State<navBar> {
         child: Consumer<PrintService>(
         builder: (context, printService, child){
           return  Drawer(
+            width: MediaQuery.of(context).size.width * 0.725,
             backgroundColor: AppColors3.whiteColor,
             child: Stack(
               children: [
@@ -113,11 +113,7 @@ class _navBarState extends State<navBar> {
                                   CircleAvatar(
                                     radius: MediaQuery.of(context).size.width*0.05,
                                     backgroundColor: AppColors3.primaryColor,
-                                    child: SvgPicture.asset(
-                                      'assets/imgLog/drIcon.svg',
-                                      colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-                                      height: MediaQuery.of(context).size.width * 0.067,
-                                    ),
+                                    child: Icon(Icons.person, color: Colors.white, size: MediaQuery.of(context).size.width * 0.08,)
                                   ),
                                   Container(
                                       padding: const EdgeInsets.only(left: 10),
@@ -125,16 +121,16 @@ class _navBarState extends State<navBar> {
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(SessionManager.instance.Nombre == 'Asistente' ? 'Nombre Asistente' : SessionManager.instance.Nombre,
+                                          Text(SessionManager.instance.Nombre == 'Dulce' ? 'Admin' : SessionManager.instance.Nombre,
                                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.width*0.05, color: AppColors3.primaryColor)),
-                                          Text('Nombre de tu empresa', style: TextStyle(color: AppColors3.primaryColor.withOpacity(0.8)),)
+                                          Text('MiniSuper San Juan Diego', style: TextStyle(color: AppColors3.primaryColor.withOpacity(0.8)),)
                                         ],
                                       )
                                   )
                                 ]
                             ),
                           ),
-                          InkWell(
+                          /*InkWell(
                             onTap: widget.currentScreen == 'inventario' ? Navigator.of(context).pop : (){
                               Navigator.of(context).pushAndRemoveUntil(
                                 CupertinoPageRoute(
@@ -172,8 +168,13 @@ class _navBarState extends State<navBar> {
                                 ),
                               ),
                             ),
-                          ),
+                          ),*/
                           //    bool isBluetoothOn = await flutterBlue.isOn;
+                          Divider(
+                            thickness: 1.5,
+                            color: AppColors3.primaryColor.withOpacity(0.3),
+                            height: 5 ,
+                          ),
                           Visibility(
                             visible: widget.currentScreen == 'inventario' ? true : false,
                             child: InkWell(

@@ -24,8 +24,7 @@ import 'listenerPrintService.dart';
 import 'themes/colors.dart';
 
 class adminInv extends StatefulWidget {
-  final bool docLog;
-  const adminInv({super.key, required this.docLog});
+  const adminInv({super.key});
 
   @override
   State<adminInv> createState() => _adminInvState();
@@ -59,6 +58,7 @@ class _adminInvState extends State<adminInv> {
   ListenerPrintService listenerPrintService = ListenerPrintService();
   /// instancia de auto search
   final scannerService = BarcodeScannerService();
+  bool prodInexistente = false;
 
 
   void changeBlurr(){
@@ -100,18 +100,17 @@ class _adminInvState extends State<adminInv> {
       print("Código inválido o búsqueda en progreso");
       return;
     }
-
     scanedProd = resultScanedProd;
     showScaner = false;
     isSearching = true;
-
     try {
       final productFound = await searchProductByBCode(scanedProd);
-
+      print('found $productFound');
+      print('found');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            duration: const Duration(milliseconds: 1000),
+            duration: const Duration(milliseconds: 700),
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).size.width * 0.08,
               bottom: MediaQuery.of(context).size.width * 0.08,
@@ -121,7 +120,7 @@ class _adminInvState extends State<adminInv> {
             content: Text(
               productFound
                   ? 'Producto agregado al carrito'
-                  : 'Producto no encontrado',
+                  : 'Producto agotado',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: MediaQuery.of(context).size.width * 0.045,
@@ -155,10 +154,62 @@ class _adminInvState extends State<adminInv> {
             .toList();
 
         if (productsGlobalTemp.isNotEmpty) {
-          final productId = productsGlobalTemp[0]['id'];
-          Provider.of<CartProvider>(context, listen: false)
-              .addProductToCart(productId, isFromBarCode: true);
-          return true;
+          final product = productsGlobalTemp[0];
+          print('verr $product');
+          final int stock = product['stock']['cantidad'] ?? 0;
+          print('stock $stock');
+
+          if (stock > 0) {
+            int currentQTT = Provider.of<CartProvider>(context, listen: false).getProductCount(product['id']);
+            print('currentQTT $currentQTT');
+            final productId = product['id'];
+            Provider.of<CartProvider>(context, listen: false).addProductToCart(productId, isFromBarCode: true);
+            return true;
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: const Duration(milliseconds: 700),
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.width * 0.08,
+                    bottom: MediaQuery.of(context).size.width * 0.08,
+                    left: MediaQuery.of(context).size.width * 0.02,
+                  ),
+                  backgroundColor: Colors.orangeAccent,
+                  content: Text(
+                    'Producto agotado',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: MediaQuery.of(context).size.width * 0.045,
+                    ),
+                  ),
+                ),
+              );
+            }
+            return false;
+          }
+        }else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                duration: const Duration(milliseconds: 1000),
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).size.width * 0.08,
+                  bottom: MediaQuery.of(context).size.width * 0.08,
+                  left: MediaQuery.of(context).size.width * 0.02,
+                ),
+                backgroundColor: Colors.redAccent,
+                content: Text(
+                  'Producto no registrado',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: MediaQuery.of(context).size.width * 0.045,
+                  ),
+                ),
+              ),
+            );
+          }
+          return false;
         }
       }
     } catch (e) {
@@ -170,22 +221,20 @@ class _adminInvState extends State<adminInv> {
   ///funcion de scanner barcode
   void handleBarcode(String barcode) async {
     if (barcode.isEmpty) return;
-  print(barcode);
     try {
       final productFound = await searchProductByBCode(barcode);
-  print(barcode);
-      if (mounted) {
+      if (mounted && productFound) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            duration: const Duration(milliseconds: 1000),
+            duration: const Duration(milliseconds: 700),
             padding: EdgeInsets.only(
               top: MediaQuery.of(context).size.width * 0.08,
               bottom: MediaQuery.of(context).size.width * 0.08,
               left: MediaQuery.of(context).size.width * 0.02,
             ),
-            backgroundColor: productFound ? Colors.green : Colors.redAccent,
+            backgroundColor: Colors.green,
             content: Text(
-              productFound ? 'Producto agregado al carrito' : 'Producto no encontrado',
+              'Producto agregado al carrito',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: MediaQuery.of(context).size.width * 0.045,
@@ -226,8 +275,13 @@ class _adminInvState extends State<adminInv> {
     // TODO: implement initState
     keyboardVisibilityManager = KeyboardVisibilityManager();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('hola');
       scannerService.initialize(context, handleBarcode);
+      /*scannerService.focusNode.requestFocus();
+      focusNode.addListener(() {
+        if (!focusNode.hasFocus) {
+          focusNode.requestFocus();
+        }
+      });*/
     });
     super.initState();
   }
@@ -301,10 +355,10 @@ class _adminInvState extends State<adminInv> {
       }
       return scannerService.wrapWithKeyboardListener(
           PopScope(
-        canPop: false,
-        onPopInvoked: (didPop) {
-          onBackPressed(didPop);
-        },
+              canPop: false,
+              onPopInvoked: (didPop) {
+                onBackPressed(didPop);
+                },
         child: Stack(
           children: [
             Scaffold(
@@ -312,7 +366,6 @@ class _adminInvState extends State<adminInv> {
                 endDrawer: navBar(
                     onItemSelected: _onItemSelected,
                     onShowBlur: _onShowBlur,
-                    isDoctorLog: widget.docLog,
                     currentScreen: currentScreen,
                     onPrintServiceComunication: onPrintServiceComunication,
                     printServiceAfterInitConn: printService,

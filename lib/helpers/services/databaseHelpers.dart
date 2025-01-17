@@ -41,7 +41,7 @@ class DatabaseHelpers {
         SessionManager.instance.isDoctor = (data['user']['id'] == 1 || data['user']['id'] == 2);
         SessionManager.instance.Nombre = data['user']['name'];
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => adminInv(docLog: SessionManager.instance.isDoctor)),
+          MaterialPageRoute(builder: (context) => adminInv()),
         );
       } else {
         prefs.remove('jwt_token');
@@ -54,7 +54,7 @@ class DatabaseHelpers {
 
   Future<void> loadLocalData() async {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => adminInv(docLog: SessionManager.instance.isDoctor)),
+      MaterialPageRoute(builder: (context) => adminInv()),
     );
   }
 

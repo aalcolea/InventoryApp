@@ -69,6 +69,7 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
       aniControllers.add(AnimationController(vsync: this, duration: const Duration(milliseconds: 450)));
       cantHelper.add(0);
     }
+    print('pglobar $products_global');
     fetchProducts();
     widget.listenerblurr.registrarObservador((newValue){
       if(newValue == false){
@@ -170,6 +171,7 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                     ? 'Agotado'
                     : '${products_global[index]['cant_cart']['cantidad']}',
                 precio: products_global[index]['price'],
+                precioRet: products_global[index]['precioRet'],
                 stock: products_global[index]['cant_cart'] == null ? 0 : products_global[index]['cant_cart']['cantidad'],
                 barCode: products_global[index]['barCod'],
                 catId: products_global[index]['catId'],
@@ -320,6 +322,7 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                   barCode: products_global[index]['barCod'] ?? '', //manejar mejor error
                                   stock: products_global[index]['cant_cart'] == null ? 0 : products_global[index]['cant_cart']['cantidad'],
                                   precio: products_global[index]['price'] ?? '',//manejar mejor error
+                                  precioRetail: products_global[index]['precioRet'] ?? '0',
                                   onProductModified: () async {
                                     await refreshProducts();
                                     removeOverlay();

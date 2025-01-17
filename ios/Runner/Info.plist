@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>beaute_app</string>
+	<string>inventory_app</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -26,8 +26,23 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>sms</string>
+		<string>tel</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>Beaute necesita acceso a Bluetooth para comunicarse con las impresoras</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>App necesita acceso a Bluetooth para comunicarse con las impresoras</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Se necesita acceso a la cámara para capturar fotos</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Se necesita acceso para guardar fotos en la galería</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Se necesita acceso a la galería para seleccionar imágenes</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
@@ -52,20 +67,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>LSApplicationQueriesSchemes</key>
-    <array>
-      <string>sms</string>
-      <string>tel</string>
-    </array>
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>Se necesita acceso a la galería para seleccionar imágenes</string>
-    <key>NSCameraUsageDescription</key>
-    <string>Se necesita acceso a la cámara para capturar fotos</string>
-    <key>NSPhotoLibraryAddUsageDescription</key>
-    <string>Se necesita acceso para guardar fotos en la galería</string>
-     <key>NSBluetoothAlwaysUsageDescription</key>
-     <string>Beaute necesita acceso a Bluetooth para comunicarse con las impresoras</string>
-     <key>NSBluetoothPeripheralUsageDescription</key>
-     <string>App necesita acceso a Bluetooth para comunicarse con las impresoras</string>
 </dict>
 </plist>

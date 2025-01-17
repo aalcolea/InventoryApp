@@ -74,12 +74,7 @@ class PrintService extends ChangeNotifier {
           await Permission.bluetoothAdvertise.isPermanentlyDenied ||
           await Permission.bluetoothConnect.isPermanentlyDenied ||
           await Permission.location.isPermanentlyDenied) {
-        showOverlay(context, CustomToast(message: 'Permisos denegado permanentemente hay que abrir configuraciones '
-            'scan ${Permission.bluetoothScan.isPermanentlyDenied}\n '
-            'bt${Permission.bluetooth.isPermanentlyDenied}\n'
-            'BtAd${Permission.bluetoothAdvertise.isPermanentlyDenied}\n'
-            'BtCon${Permission.bluetoothConnect.isPermanentlyDenied}\n'
-            'Loc${Permission.location.isPermanentlyDenied}\n'
+        showOverlay(context, const CustomToast(message: 'Permisos denegado permanentemente hay que abrir configuraciones '
         ));
         await openAppSettings();
         return false;
@@ -140,6 +135,7 @@ class PrintService extends ChangeNotifier {
     } else {
       listenerPrintService.setChange(2, false);
       print("Permisos de Bluetooth no concedidos.");
+      await openAppSettings();
     }
   }
   Future<void> ensureCharacteristicAvailable() async {

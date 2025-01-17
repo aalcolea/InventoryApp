@@ -57,6 +57,7 @@ class CategoryService {
     String? token = prefs.getString('jwt_token');
 
     try{
+      print('entra al try');
       final request = http.MultipartRequest('POST', url);
       request.headers['X-HTTP-Method-Override'] = 'PUT';
       request.headers['Content-Type'] = 'multipart/form-data';
@@ -108,6 +109,7 @@ class CategoryService {
         } catch (e) {
           errorMessage = 'Error inesperado: ${responseBody.body}';
         }
+        print('else');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               padding: EdgeInsets.only(

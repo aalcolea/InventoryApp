@@ -84,7 +84,16 @@ class _CategoryFormState extends State<CategoryForm> {
   Future<void> createCategory() async {
     if (nameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Por favor ingresa el nombre de la categoría")),
+        SnackBar(
+            duration: const Duration(milliseconds: 700),
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).size.width * 0.08,
+              bottom: MediaQuery.of(context).size.width * 0.08,
+              left: MediaQuery.of(context).size.width * 0.02,
+            ),
+            content: Text("Por favor ingresa el nombre de la categoría", style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width * 0.045,
+            ))),
       );
       return;
     }
@@ -100,9 +109,7 @@ class _CategoryFormState extends State<CategoryForm> {
     try {
       final request = http.MultipartRequest('POST', Uri.parse(baseUrl));
       request.headers['Authorization'] = 'Bearer $token';
-
       request.fields['nombre'] = nameController.text;
-
       if (_selectedImage != null) {
         request.files.add(await http.MultipartFile.fromPath('foto', _selectedImage!.path));
       }
@@ -110,11 +117,11 @@ class _CategoryFormState extends State<CategoryForm> {
       final response = await request.send();
 
       final responseBody = await http.Response.fromStream(response);
-
       if (response.statusCode == 201) {
         if(mounted){
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
+              backgroundColor: Colors.green,
                 padding: EdgeInsets.only(
                   top: MediaQuery.of(context).size.width * 0.08,
                   bottom: MediaQuery.of(context).size.width * 0.08,
@@ -150,12 +157,7 @@ class _CategoryFormState extends State<CategoryForm> {
           );
         }
       }
-      SnackBar(content: Text("asdasd"));
     } catch (e) {
-      SnackBar(content: Text("Fallo"));
-      print("Errdasdor: $e");
-
-
       print('errr inesperado ${e}');
     } finally {
       setState(() {

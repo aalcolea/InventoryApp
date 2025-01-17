@@ -40,7 +40,7 @@ class SalesPrintService {
   }
 
   Future<void> printText(List<Map<String, dynamic>> products, String saleDate) async {
-    String lugar = 'Lugar exp: Merida, Yucatan\n';
+    String lugar = 'Lugar exp: Conkal, Yucatan\n';
     double cuentaTotal = 0;
 
     if (characteristic == null) return;
@@ -50,7 +50,7 @@ class SalesPrintService {
     // Comando ESC/POS para centrar y poner en negrita el texto "BEUATE CLINIQUE"
     bytes += utf8.encode('\x1B\x61\x01'); // Alinear centro
     bytes += utf8.encode('\x1B\x45\x01'); // Negrita ON
-    bytes += utf8.encode('CLINICA FLY\n\n');
+    bytes += utf8.encode('MINISUPER SAN JUAN DIEGO\n\n');
     bytes += utf8.encode('\x1B\x45\x00'); // Negrita OFF
     bytes += utf8.encode('\x1B\x61\x00'); // Alinear izquierda
     //bytes += utf8.encode('\x1B\x61\x02'); // Alinear der
@@ -138,7 +138,7 @@ class SalesPrintService {
   }
 
   Future<void> printTextIos(List<Map<String, dynamic>> products, String saleDate) async {
-    String lugar = 'Lugar exp: Merida, Yucatan\n';
+    String lugar = 'Lugar exp: Conkal, Yucatan\n';
     double cuentaTotal = 0;
 
     if (characteristic == null) return;
@@ -148,7 +148,7 @@ class SalesPrintService {
     // Comando ESC/POS para centrar y poner en negrita el texto "BEUATE CLINIQUE"
     bytes += utf8.encode('\x1B\x61\x01'); // Alinear centro
     bytes += utf8.encode('\x1B\x45\x01'); // Negrita ON
-    bytes += utf8.encode('CLINICA FLY\n\n');
+    bytes += utf8.encode('MINISUPER SAN JUAN DIEGO\n\n');
     bytes += utf8.encode('\x1B\x45\x00'); // Negrita OFF
     bytes += utf8.encode('\x1B\x61\x00'); // Alinear izquierda
     //bytes += utf8.encode('\x1B\x61\x02'); // Alinear der

@@ -288,6 +288,7 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                     ? 'Agotado'
                     : '${productos[index]['stock']['cantidad']}',
                 precio: double.parse(productos[index]['precio']),
+                precioRet: double.parse(productos[index]['precioRet']),
                 stock: productos[index]['stock']['cantidad'] ?? 0,
                 barCode: productos[index]['codigo_barras'],
                 catId: productos[index]['category_id'],
@@ -601,6 +602,7 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                         barCode: productos[index]['codigo_barras'],
                                         stock: productos[index]['stock']['cantidad'] ?? 0,
                                         precio: double.parse(productos[index]['precio']),
+                                        precioRetail: double.parse(productos[index]['precioRetail']),
                                         onProductModified: () async {
                                           await refreshProducts();
                                           removeOverlay();

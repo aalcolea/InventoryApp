@@ -203,6 +203,7 @@ class _SalesListState extends State<SalesList> {
               },
             ) : const Center(
               child: Text(
+                textAlign: TextAlign.center,
                 'No hay tickets correspondientes a la fecha seleccionada',
                 style: TextStyle(
                   color: AppColors.primaryColor,
@@ -273,10 +274,9 @@ class _SalesListState extends State<SalesList> {
                     onPressed: () {
                       Navigator.of(context).push(
                         CupertinoPageRoute(
-                          builder: (context) => SalesPDF(sales: productsFilterd,),
+                          builder: (context) => SalesPDF(sales: productsFilterd, nameEstableciment: 'MiniSuper San Juan Diego', direccion: '', email: '',),
                         ),
                       );
-                      print('filtrados $productsFilterd');
                     },
                     icon: Icon(
                       CupertinoIcons.arrow_down_doc_fill,

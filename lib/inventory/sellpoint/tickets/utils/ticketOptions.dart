@@ -164,7 +164,7 @@ class _TicketOptionsState extends State<TicketOptions> {
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     CupertinoPageRoute(
-                                      builder: (context) => TestPDF(ticket: widget.tickets,),
+                                      builder: (context) => TestPDF(ticket: widget.tickets, nameEstableciment: 'MiniSuper San Juan Diego', direccion: '', email: '',),
                                     ),
                                   );
                                   widget.onClose();

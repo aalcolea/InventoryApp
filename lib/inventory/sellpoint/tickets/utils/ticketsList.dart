@@ -265,6 +265,9 @@ class _TicketslistState extends State<Ticketslist> {
                               bottom: MediaQuery.of(context).size.width * 0.015
                           ),
                           initiallyExpanded: false,
+                          collapsedShape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                          ),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                               side: const BorderSide(

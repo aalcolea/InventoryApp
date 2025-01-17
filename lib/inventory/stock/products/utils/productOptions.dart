@@ -15,6 +15,7 @@ class ProductOptions extends StatefulWidget {
   final String nombre;
   final String cant;
   final double precio;
+  final double precioRet;
   final int id;
   final String barCode;
   final String descripcion;
@@ -29,7 +30,7 @@ class ProductOptions extends StatefulWidget {
 
   final dynamic columnH;
 
-  const ProductOptions({super.key, required this.onClose, required this.nombre, required this.cant, required this.precio, required this.columnH, required void Function(bool p1) onShowBlureight, required this.id, required this.barCode, required this.stock, required this.catId, required this.descripcion, required this.onProductDeleted, required this.onShowBlur, required this.columnHeight, required this.onProductModified,
+  const ProductOptions({super.key, required this.onClose, required this.nombre, required this.cant, required this.precio, required this.columnH, required void Function(bool p1) onShowBlureight, required this.id, required this.barCode, required this.stock, required this.catId, required this.descripcion, required this.onProductDeleted, required this.onShowBlur, required this.columnHeight, required this.onProductModified, required this.precioRet,
   });
 
   @override
@@ -165,6 +166,7 @@ class _ProductOptionsState extends State<ProductOptions> {
                                           barCode: widget.barCode,
                                           stock: widget.stock,
                                           precio: widget.precio,
+                                          precioRetail: widget.precio,///todo here
                                           onProductModified: () async {
                                             await productService.refreshProducts(widget.catId);
                                           },

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:inventory_app/inventory/print/printConnections.dart';
@@ -96,6 +97,7 @@ class _adminInvState extends State<adminInv> {
     });
   }
   void onScanProd(String? resultScanedProd) async {
+    print('result $resultScanedProd');
     if (resultScanedProd == null || resultScanedProd.isEmpty || isSearching) {
       print("Código inválido o búsqueda en progreso");
       return;
@@ -105,8 +107,6 @@ class _adminInvState extends State<adminInv> {
     isSearching = true;
     try {
       final productFound = await searchProductByBCode(scanedProd);
-      print('found $productFound');
-      print('found');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -139,6 +139,7 @@ class _adminInvState extends State<adminInv> {
 
   /// Busca el producto por código de barras y retorna si se encontró o no.
   Future<bool> searchProductByBCode(String? barcode) async {
+    print('searchProductByBCode $barcode');
     if (barcode == null || barcode.isEmpty) {
       setState(() {
         producto = [];
@@ -150,21 +151,40 @@ class _adminInvState extends State<adminInv> {
       for (final variant in barcodeVariants) {
         final data = await searchService.searchByBCode(variant);
         productsGlobalTemp = (data['productos'] as List)
-            .map((item) => item as Map<String, dynamic>)
-            .toList();
-
+            .map((item) => item as Map<String, dynamic>).toList();
         if (productsGlobalTemp.isNotEmpty) {
           final product = productsGlobalTemp[0];
-          print('verr $product');
           final int stock = product['stock']['cantidad'] ?? 0;
-          print('stock $stock');
-
           if (stock > 0) {
             int currentQTT = Provider.of<CartProvider>(context, listen: false).getProductCount(product['id']);
-            print('currentQTT $currentQTT');
-            final productId = product['id'];
-            Provider.of<CartProvider>(context, listen: false).addProductToCart(productId, isFromBarCode: true);
-            return true;
+            if(stock == currentQTT){
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: const Duration(milliseconds: 700),
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.width * 0.08,
+                      bottom: MediaQuery.of(context).size.width * 0.08,
+                      left: MediaQuery.of(context).size.width * 0.02,
+                    ),
+                    backgroundColor: Colors.orangeAccent,
+                    content: Text(
+                      'Ya no puedes agregar más de este producto',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: MediaQuery.of(context).size.width * 0.045,
+                      ),
+                    ),
+                  ),
+                );
+                return false;
+              }
+
+            }else{
+              final productId = product['id'];
+              Provider.of<CartProvider>(context, listen: false).addProductToCart(productId, isFromBarCode: true);
+              return true;
+            }
           } else {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -214,8 +234,8 @@ class _adminInvState extends State<adminInv> {
       }
     } catch (e) {
       print('Error en la búsqueda: $e');
-    }
 
+    }
     return false;
   }
   ///funcion de scanner barcode
@@ -243,7 +263,7 @@ class _adminInvState extends State<adminInv> {
           ),
         );
       }
-      soundScaner();
+      //soundScaner();
     } catch (e) {
       print('Error en la búsqueda: $e');
     }
@@ -276,12 +296,12 @@ class _adminInvState extends State<adminInv> {
     keyboardVisibilityManager = KeyboardVisibilityManager();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       scannerService.initialize(context, handleBarcode);
-      /*scannerService.focusNode.requestFocus();
+      scannerService.focusNode.requestFocus();
       focusNode.addListener(() {
         if (!focusNode.hasFocus) {
           focusNode.requestFocus();
         }
-      });*/
+      });
     });
     super.initState();
   }

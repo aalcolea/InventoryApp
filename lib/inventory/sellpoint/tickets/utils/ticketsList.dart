@@ -150,6 +150,7 @@ class _TicketslistState extends State<Ticketslist> {
       tickets[index]['cantidad'],
       tickets[index]['total'],
       tickets[index]['detalles'],
+      tickets[index]['tipoVenta'],
     ]);
     if (index >= 0 && index < tickets.length) {
       ticketTemp = [tickets[index]];
@@ -276,7 +277,7 @@ class _TicketslistState extends State<Ticketslist> {
                               )
                           ),
                           title: Text(
-                            'Ticket ${tickets[index]['id']}',
+                            'Ticket ${tickets[index]['tipoVenta']}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: MediaQuery.of(context).size.width * 0.05,

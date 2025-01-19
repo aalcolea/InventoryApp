@@ -422,8 +422,9 @@ class _CartState extends State<Cart> {
               ),
               onPressed: cartProvider.cart.isNotEmpty ? () async {
                 widget.onShowBlurr(true);
-                bool confirm = await showConfirmSellDialog(context);
-                if(confirm){
+                final confirmData = await showConfirmSellDialog(context);
+                if (confirmData != null) {
+                  bool isCardPayment = confirmData['isCardPayment'] ?? false;
                   bool canPrint = false;
                   try{
                     await widget.printService.ensureCharacteristicAvailable();
@@ -444,7 +445,7 @@ class _CartState extends State<Cart> {
                       showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));
                     }
                   }
-                  bool result = await cartProvider.sendCart();
+                  bool result = await cartProvider.sendCart(isCardPayment);
                   widget.onShowBlurr(false);
                   if(result){
                     showOverlay(context, const CustomToast(message: 'Venta efectuada correctamente'));

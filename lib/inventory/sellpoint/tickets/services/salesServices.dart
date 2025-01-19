@@ -28,6 +28,7 @@ class SalesServices{
           'fecha' : formatter.format(fecha),
           'cantidad' : sales['cantidad'],
           'detalles' : sales['detalles'],
+          'tipoVenta' : sales['tipoVenta'] == 1 ? 'Tarjeta' : 'Efectivo',
 
         };
       }).toList();

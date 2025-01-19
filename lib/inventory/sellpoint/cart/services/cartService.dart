@@ -98,7 +98,7 @@ class CartProvider extends ChangeNotifier {
     );
     return productInCart.isNotEmpty && productInCart['cant_cart'] is num ? (productInCart['cant_cart'] as num).toInt() : 0;
   }
-  Future<bool> sendCart() async {
+  Future<bool> sendCart(bool isCardPayment) async {
     List<Map<String, dynamic>> transformedCart = _cart.map((item){
       return {
         'producto_id' : item['product_id'],
@@ -107,6 +107,7 @@ class CartProvider extends ChangeNotifier {
     }).toList();
     final body = jsonEncode({
       'carrito': transformedCart,
+      'tipoVenta': isCardPayment ? 1 : 0,
     });
     print('Carrito mandado:$transformedCart');
     final response = await http.post(

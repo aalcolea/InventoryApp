@@ -52,6 +52,7 @@ class SalesServices{
         DateTime fecha_venta = DateTime.parse(data[0]['created_at']);
         final int cantidad = int.tryParse(detalle['cantidad'].toString()) ?? 0;
         final double precio = double.tryParse(detalle['precio'].toString()) ?? 0.0;
+        final category_id = producto['category_id'];
         if (productosMap.containsKey(idProd)) {
           print('if');
           productosMap[idProd]!['cantidad'] += cantidad;
@@ -64,7 +65,8 @@ class SalesServices{
             'precio': precio,
             'total': cantidad * precio,
             'fecha': fecha,
-            'fecha_venta': formatter.format(fecha_venta)
+            'fecha_venta': formatter.format(fecha_venta),
+            'category_id': category_id
           };
         }
       });
@@ -76,11 +78,28 @@ class SalesServices{
           'precio': entry.value['precio'],
           'total': entry.value['total'],
           'fecha': entry.value['fecha'],
-          'fecha_venta': entry.value['fecha_venta']
+          'fecha_venta': entry.value['fecha_venta'],
+          'category_id': entry.value['category_id']
         };
       }).toList();
     } else{
       throw Exception('Error al obtener los productos vendidos');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchCategories({int limit = 6, int offset = 0}) async{
+    final response = await http.get(Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/categories?limit=$limit&offset=$offset'));
+    if(response.statusCode == 200){
+      final List<dynamic> data = json.decode(response.body)['data'];
+      return data.map((item){
+        return {
+          'id' : item['id'].toString(),
+          'category': item['nombre'],
+          'image': item['foto'],
+        };
+      }).toList();
+    }else{
+      throw Exception('Error al obtener datos de la API');
     }
   }
 }

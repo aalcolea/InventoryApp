@@ -36,19 +36,26 @@ class _SalesListState extends State<SalesList> {
   String? _finalDate;
   String? query;
 
-  void filterSales(String? query){
-    if(mounted){
+  void filterSales(String? query) {
+    if (mounted) {
       setState(() {
-        query?.toLowerCase();
-        if(query!.isEmpty){
+        query = query?.toLowerCase() ?? '';
+        if (query!.isEmpty) {
           productsFilterd = products;
-          print('asd $productsFilterd');
         } else {
-          productsFilterd = products.where((prod){
-            final matchesProducts = prod['nombre'].toString().toLowerCase().contains(query);
-            print('hola $products');
-            return matchesProducts;
-          }).toList();}});}
+          productsFilterd = products.where((prod) {
+            final matchesName = prod['nombre'].toString().toLowerCase().contains(query!);
+            final matchingCategory = cat.firstWhere(
+                  (category) => category['category'].toString().toLowerCase().contains(query!),
+              orElse: () => {'id': null},
+            );
+            final matchesCategory = matchingCategory['id'] != null &&
+                prod['category_id'].toString() == matchingCategory['id'].toString();
+            return matchesName || matchesCategory;
+          }).toList();
+        }
+      });
+    }
   }
 
   @override
@@ -67,6 +74,7 @@ class _SalesListState extends State<SalesList> {
           filterSales(this.query);
           print(this.query);
     });
+    loadCategories();
   }
 
   Future<void> fetchSales(String? initData, String? finalData) async{
@@ -86,6 +94,27 @@ class _SalesListState extends State<SalesList> {
     }catch (e) {
       print('Error fetching sales: $e');
       isLoading = false;
+    }
+  }
+
+  int limit = 6;
+  int offset = 0;
+  List<Map<String, dynamic>> cat = [];
+  Future<void> loadCategories() async{
+    try{
+      setState(() {
+        cat.clear();
+        offset = 0;
+      });
+      List<Map<String, dynamic>> fetchedItems = await SalesServices().fetchCategories(limit: limit, offset: offset);
+      setState(() {
+        cat = fetchedItems;
+        offset += limit;
+        isLoading = false;
+        print('jajaja $cat');
+      });
+    }catch(e){
+      print('Error al cargar los items jaja $e');
     }
   }
 

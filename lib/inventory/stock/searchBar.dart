@@ -290,7 +290,7 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                 precioRet: double.parse(productos[index]['precioRet']),
                 stock: productos[index]['stock']['cantidad'] ?? 0,
                 barCode: productos[index]['codigo_barras'],
-                catId: productos[index]['category_id'],
+                catId: productos[index]['category_id'] ?? 0,
                 id: productos[index]['id'],
                 descripcion: productos[index]['descripcion'],
                 columnHeight: colHeight,

@@ -278,27 +278,6 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                     ],
                   )
                 ),
-                /*Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: [
-                      IconButton(
-                          onPressed: widget.onBack,
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new,
-                            color: AppColors2.primaryColor,
-                          )
-                      ),
-                      Text(
-                        widget.selectedCategory,
-                        style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.width * 0.08,
-                            color: AppColors2.primaryColor
-                        ),
-                      ),
-                    ],
-                  ),
-                ),*/
                 Expanded(
                   child: ListView.builder(
                       padding: EdgeInsets.only(

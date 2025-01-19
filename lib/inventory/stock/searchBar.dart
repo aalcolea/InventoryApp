@@ -592,17 +592,18 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                               return InkWell(
                                 key: productKeys.isNotEmpty && productKeys.length > index ? productKeys[index] : null,
                                 onTap: () {
+                                  print(productos);
                                   Navigator.push(context,
                                     CupertinoPageRoute(
                                       builder: (context) => ProductDetails(
                                         idProduct: productos[index]['id'],
                                         nameProd: productos[index]['nombre'],
                                         descriptionProd: productos[index]['descripcion'],
-                                        catId: productos[index]['category_id'],
+                                        catId: productos[index]['category_id'] ?? 0,
                                         barCode: productos[index]['codigo_barras'],
                                         stock: productos[index]['stock']['cantidad'] ?? 0,
                                         precio: double.parse(productos[index]['precio']),
-                                        precioRetail: double.parse(productos[index]['precioRetail']),
+                                        precioRetail: double.parse(productos[index]['precioRet'] ?? '0'),
                                         onProductModified: () async {
                                           await refreshProducts();
                                           removeOverlay();

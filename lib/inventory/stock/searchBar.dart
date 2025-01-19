@@ -167,7 +167,6 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
         offset += limit;
       });
       _ensureAddCatAtTheEnd();
-      print(offset);
     }catch(e){
       print('Error al cargar mas productos $e');
     }
@@ -592,7 +591,6 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                               return InkWell(
                                 key: productKeys.isNotEmpty && productKeys.length > index ? productKeys[index] : null,
                                 onTap: () {
-                                  print(productos);
                                   Navigator.push(context,
                                     CupertinoPageRoute(
                                       builder: (context) => ProductDetails(

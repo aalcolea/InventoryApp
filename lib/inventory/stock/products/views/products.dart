@@ -278,27 +278,6 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                     ],
                   )
                 ),
-                /*Padding(
-                  padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.02),
-                  child: Row(
-                    children: [
-                      IconButton(
-                          onPressed: widget.onBack,
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new,
-                            color: AppColors2.primaryColor,
-                          )
-                      ),
-                      Text(
-                        widget.selectedCategory,
-                        style: TextStyle(
-                            fontSize: MediaQuery.of(context).size.width * 0.08,
-                            color: AppColors2.primaryColor
-                        ),
-                      ),
-                    ],
-                  ),
-                ),*/
                 Expanded(
                   child: ListView.builder(
                       padding: EdgeInsets.only(
@@ -319,9 +298,9 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                   nameProd: products_global[index]['product'] ?? '',
                                   descriptionProd: products_global[index]['descripcion'] ?? '',
                                   catId: products_global[index]['catId'],
-                                  barCode: products_global[index]['barCod'] ?? '', //manejar mejor error
+                                  barCode: products_global[index]['barCod'] ?? '',
                                   stock: products_global[index]['cant_cart'] == null ? 0 : products_global[index]['cant_cart']['cantidad'],
-                                  precio: products_global[index]['price'] ?? '',//manejar mejor error
+                                  precio: products_global[index]['price'] ?? '',
                                   precioRetail: products_global[index]['precioRet'] ?? '0',
                                   onProductModified: () async {
                                     await refreshProducts();

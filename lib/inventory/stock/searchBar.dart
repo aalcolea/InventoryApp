@@ -167,7 +167,6 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
         offset += limit;
       });
       _ensureAddCatAtTheEnd();
-      print(offset);
     }catch(e){
       print('Error al cargar mas productos $e');
     }
@@ -291,7 +290,7 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                 precioRet: double.parse(productos[index]['precioRet']),
                 stock: productos[index]['stock']['cantidad'] ?? 0,
                 barCode: productos[index]['codigo_barras'],
-                catId: productos[index]['category_id'],
+                catId: productos[index]['category_id'] ?? 0,
                 id: productos[index]['id'],
                 descripcion: productos[index]['descripcion'],
                 columnHeight: colHeight,
@@ -598,11 +597,11 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                         idProduct: productos[index]['id'],
                                         nameProd: productos[index]['nombre'],
                                         descriptionProd: productos[index]['descripcion'],
-                                        catId: productos[index]['category_id'],
+                                        catId: productos[index]['category_id'] ?? 0,
                                         barCode: productos[index]['codigo_barras'],
                                         stock: productos[index]['stock']['cantidad'] ?? 0,
                                         precio: double.parse(productos[index]['precio']),
-                                        precioRetail: double.parse(productos[index]['precioRetail']),
+                                        precioRetail: double.parse(productos[index]['precioRet'] ?? '0'),
                                         onProductModified: () async {
                                           await refreshProducts();
                                           removeOverlay();

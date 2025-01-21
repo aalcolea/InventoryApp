@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inventory_app/establishmentInfo.dart';
 import '../../../../helpers/themes/colors.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
@@ -33,6 +34,7 @@ class _TicketOptionsState extends State<TicketOptions> {
   PrintService printService = PrintService();
   late PrintService2 printService2;
   List<dynamic> ticketDetails = [];
+  String tipoDePago = '';
 
   @override
   void initState() {
@@ -40,8 +42,8 @@ class _TicketOptionsState extends State<TicketOptions> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _calculateHeight();
     });
+    tipoDePago = widget.ticketInfo[5];
     ticketDetails = widget.ticketInfo[4];
-    print(ticketDetails);
   }
 
   void _calculateHeight() {
@@ -93,6 +95,16 @@ class _TicketOptionsState extends State<TicketOptions> {
                                   fontWeight: FontWeight.bold,
                                   fontSize: MediaQuery.of(context).size.width * 0.05,
                                 ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                'Tipo de pago: ${widget.ticketInfo[5]}',
+                                style: TextStyle(
+                                    color: AppColors3.primaryColor,
+                                    fontSize: MediaQuery.of(context).size.width * 0.04),
                               ),
                             ],
                           ),
@@ -164,7 +176,9 @@ class _TicketOptionsState extends State<TicketOptions> {
                                 onPressed: () {
                                   Navigator.of(context).push(
                                     CupertinoPageRoute(
-                                      builder: (context) => TestPDF(ticket: widget.tickets, nameEstableciment: 'MiniSuper San Juan Diego', direccion: '', email: '',),
+                                      builder: (context) => TestPDF(ticket: widget.tickets,
+                                        nameEstableciment: Establishmentinfo.name, direccion: Establishmentinfo.street, email: Establishmentinfo.email,
+                                        tipoDePago: tipoDePago),
                                     ),
                                   );
                                   widget.onClose();
@@ -205,8 +219,8 @@ class _TicketOptionsState extends State<TicketOptions> {
                               if (canPrint) {
                                 PrintService2 printService2 = PrintService2(widget.printService.characteristic!);
                                 try{
-                                  Platform.isAndroid ? await printService2.connectAndPrintAndroideTicket(ticketDetails, 'assets/imgLog/logoTest.png') :
-                                  await printService2.connectAndPrintIOSTicket(ticketDetails, 'assets/imgLog/logoTest.png');
+                                  Platform.isAndroid ? await printService2.connectAndPrintAndroideTicket(ticketDetails, Establishmentinfo.logoRootAsset, Establishmentinfo.logo) :
+                                  await printService2.connectAndPrintIOSTicket(ticketDetails, Establishmentinfo.logoRootAsset, Establishmentinfo.logo);
                                 } catch(e){
                                   print("Error al intentar imprimir: $e");
                                   showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));

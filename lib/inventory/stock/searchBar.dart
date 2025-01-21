@@ -112,13 +112,18 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    super.initState();
     keyboardVisibilityManager = KeyboardVisibilityManager();
     //loadFirstItems();
     //fetchProducts();
     widget.listenerblurr.registrarObservador((newValue){
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        focusNode.requestFocus();
+      });
+    });
     // TODO: implement initState
-    super.initState();
   }
 
   @override
@@ -393,7 +398,6 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                             child: TextFormField(
                               controller: searchController,
                               focusNode: focusNode,
-                              autofocus: true,
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.zero,
                                 hintText: 'Buscar producto...',

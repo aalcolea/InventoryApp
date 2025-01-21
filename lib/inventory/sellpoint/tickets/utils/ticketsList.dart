@@ -125,7 +125,7 @@ class _TicketslistState extends State<Ticketslist> {
         }
         cantHelper = List.generate(tickets.length, (index) => 0);
 
-        Future.delayed(Duration(milliseconds: 250));
+        Future.delayed(const Duration(milliseconds: 250));
         isLoading = false;
       });
     }catch (e) {
@@ -154,7 +154,6 @@ class _TicketslistState extends State<Ticketslist> {
     ]);
     if (index >= 0 && index < tickets.length) {
       ticketTemp = [tickets[index]];
-      print('holajeje $ticketTemp');
       removeOverlay();
       final key = ticketKeys[index];
       if (key.currentContext != null && key.currentContext!.findRenderObject() is RenderBox) {
@@ -277,7 +276,8 @@ class _TicketslistState extends State<Ticketslist> {
                               )
                           ),
                           title: Text(
-                            'Ticket ${tickets[index]['tipoVenta']}',
+                            //'Ticket ${tickets[index]['tipoVenta']}',
+                            'Ticket #${tickets[index]['id']}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: MediaQuery.of(context).size.width * 0.05,
@@ -297,6 +297,22 @@ class _TicketslistState extends State<Ticketslist> {
                                   Text(
                                     '${tickets[index]['fecha']}',
                                     style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: MediaQuery.of(context).size.width * 0.04),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    'Tipo de pago: ',
+                                    style: TextStyle(
+                                      fontSize: MediaQuery.of(context).size.width * 0.04,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${tickets[index]['tipoVenta']}',
+                                  style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: MediaQuery.of(context).size.width * 0.04),
                                   ),

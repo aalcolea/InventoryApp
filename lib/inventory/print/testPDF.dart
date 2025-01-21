@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inventory_app/establishmentInfo.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf_viewer_plugin/pdf_viewer_plugin.dart';
@@ -14,9 +15,10 @@ class TestPDF extends StatefulWidget {
   final String nameEstableciment;
   final String direccion;
   final String email;
+  final String tipoDePago;
   final List<Map<String, dynamic>> ticket;
 
-  const TestPDF({super.key, required this.ticket, required this.nameEstableciment, required this.direccion, required this.email});
+  const TestPDF({super.key, required this.ticket, required this.nameEstableciment, required this.direccion, required this.email, required this.tipoDePago});
 
   @override
   _TestPDFState createState() => _TestPDFState();
@@ -50,8 +52,12 @@ class _TestPDFState extends State<TestPDF> {
   Future<Uint8List> generarPdf1() async {
     detallesTicket = widget.ticket[0]['detalles'];
     pdf = pw.Document();
-    /*final imageBytes = await rootBundle.load('assets/imgLog/productos.png');
-    final image = pw.MemoryImage(imageBytes.buffer.asUint8List());*////Descomentar para cuando el establecimiento tenga logo
+    late final imageBytes;
+    late final image;
+    if(Establishmentinfo.logo){
+      imageBytes = await rootBundle.load('assets/imgLog/productos.png');
+      image = pw.MemoryImage(imageBytes.buffer.asUint8List());
+    }
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a5,
@@ -66,10 +72,12 @@ class _TestPDFState extends State<TestPDF> {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        /*pw.Image(
-                            image,//Descomentar para cuando el establecimiento tenga logo
-                            width: 75
-                        ),*/
+                        if(Establishmentinfo.logo)...[
+                          pw.Image(
+                              image,
+                              width: 75
+                          ),
+                        ],
                         pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.end,
                           children: [
@@ -189,7 +197,7 @@ class _TestPDFState extends State<TestPDF> {
                                       color: PdfColors.blue100,
                                       width: 120,
                                       child: pw.Text(
-                                        'Efectivo/Tarjeta',
+                                        widget.tipoDePago,
                                         style: const pw.TextStyle(
                                           fontSize: 11,
                                           color: PdfColors.black,

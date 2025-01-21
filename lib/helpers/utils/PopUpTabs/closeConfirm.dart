@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 
+import '../../../establishmentInfo.dart';
 import '../../themes/colors.dart';
 
 class AlertCloseDialog extends StatefulWidget {
@@ -64,16 +65,21 @@ class _AlertCloseDialogState extends State<AlertCloseDialog> {
                 ),
                 Row(
                   children: [
-                    Padding(
+                    if(!Establishmentinfo.logo) ...
+                    [
+                      const SizedBox(width: 18,)
+                    ]
+                    else ...[
+                      Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: MediaQuery.of(context).size.width * 0.012,
                       ),
                       child: CircleAvatar(
                         radius: MediaQuery.of(context).size.width * 0.052,
-                        backgroundImage: AssetImage("assets/imgLog/logoBeauteWhite.png"),
+                        backgroundImage: const AssetImage(Establishmentinfo.logoRootAsset),
                       ),
                     ),
-
+                    ],
                     Flexible(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +98,7 @@ class _AlertCloseDialogState extends State<AlertCloseDialog> {
                             ),
                           ),
                           Text(
-                            '¿Deseas cerrar la app?',
+                            '¿Deseas cerrar el POS?',
                             style: TextStyle(
                               fontSize: MediaQuery.of(context).size.width * 0.0425,
                             ),

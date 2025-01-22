@@ -301,6 +301,22 @@ class _adminInvState extends State<adminInv> {
     keyboardVisibilityManager.keyboardVisibilitySubscription =
         keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
           if (visible) {
+            if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
+                FocusManager.instance.primaryFocus?.context?.widget is TextFormField) {
+              isUsingTextField = true;
+              scannerService.focusNode.unfocus(); // Desenfocar el escáner solo si se está usando un campo de texto.
+            }
+          } else {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted && !isUsingTextField) {
+                scannerService.focusNode.requestFocus(); // Volver a enfocar el escáner si no se está usando el teclado.
+              }
+            });
+          }
+        });
+    /*keyboardVisibilityManager.keyboardVisibilitySubscription =
+        keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
+          if (visible) {
             isUsingTextField = true;
             scannerService.focusNode.unfocus();
           } else {
@@ -310,7 +326,7 @@ class _adminInvState extends State<adminInv> {
               }
             });
           }
-        });
+        });*/
     Future.microtask(() {
       if (mounted) {
         scannerService.initialize(context, handleBarcode);
@@ -321,17 +337,6 @@ class _adminInvState extends State<adminInv> {
                 scannerService.focusNode.requestFocus();
               }
             });
-          }
-        });
-        GestureBinding.instance.pointerRouter.addGlobalRoute((PointerEvent event) {
-          if (event is PointerDownEvent) {
-            if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
-                FocusManager.instance.primaryFocus?.context?.widget is TextFormField) {
-              isUsingTextField = true;
-              scannerService.focusNode.unfocus();
-            } else {
-              isUsingTextField = false;
-            }
           }
         });
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -536,16 +541,14 @@ class _adminInvState extends State<adminInv> {
                                         height: showScaner ? MediaQuery.of(context).size.width * 0.3 : 40,//37
                                         child: showScaner ? ScanBarCode(onShowScan: onShowScan, onScanProd: onScanProd) : TextFormField(
                                           onTap: () async {
-                                            focusNode.unfocus();
                                             await Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) => Seeker(onShowBlur: onShowBlurr, listenerblurr: Listenerblurr(),),
                                               ),
-                                            );
-                                            if (mounted) {
-                                              FocusScope.of(context).unfocus();
-                                            }
+                                            ).then((_){
+                                              focusNode.unfocus();
+                                            });
                                           },
                                           controller: searchController,
                                           focusNode: focusNode,

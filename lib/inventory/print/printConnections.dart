@@ -79,11 +79,6 @@ class PrintService extends ChangeNotifier {
         await openAppSettings();
         return false;
       }
-      print('scan ${Permission.bluetoothScan.isPermanentlyDenied}\n '
-          'bt${Permission.bluetooth.isPermanentlyDenied}\n'
-          'BtAd${Permission.bluetoothAdvertise.isPermanentlyDenied}\n'
-          'BtCon${Permission.bluetoothConnect.isPermanentlyDenied}\n'
-          'Loc${Permission.location.isPermanentlyDenied}\n');
       return (await Permission.bluetoothScan.isGranted) &&
           (await Permission.bluetooth.isGranted) &&
           (await Permission.bluetoothAdvertise.isGranted) &&

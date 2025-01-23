@@ -196,9 +196,10 @@ class _SalesCalendarState extends State<SalesCalendar> {
                           onTap: (CalendarTapDetails details) {
                             if (details.date != null) {
                               DateTime selectedDate = details.date!;
-                              DateTime now = DateTime.now();
+                              //DateTime now = DateTime.now();
                               if (selectedDate.isAfter(
-                                  DateTime(now.year, now.month, now.day))) {
+                                DateTime.now().add(const Duration(days: 1))
+                                  /*DateTime(now.year, now.month, now.day)*/)) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                       padding: EdgeInsets.only(

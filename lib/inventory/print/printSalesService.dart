@@ -17,24 +17,24 @@ class SalesPrintService {
     await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
   }
 
-  Future<void> connectAndPrintAndroide(List<Map<String, dynamic>> products, String imagePath, String saleDate) async {
+  Future<void> connectAndPrintAndroide(List<Map<String, dynamic>> products, String imagePath, String saleDate, bool hasLogo) async {
     if (characteristic == null) {
       print("Error: No se encontró la característica para imprimir.");
       return;
     }
     await centrar();
-    await printImageBW(imagePath);
+     hasLogo ? await printImageBW(imagePath) : null;
     await printText(products, saleDate);
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
-  Future<void> connectAndPrintIOS(List<Map<String, dynamic>> products, String imagePath, String saleDate) async {
+  Future<void> connectAndPrintIOS(List<Map<String, dynamic>> products, String imagePath, String saleDate, bool hasLogo) async {
     if (characteristic == null) {
       print("Error: No se encontró la característica para imprimir.");
       return;
     }
 
-    await printImageWithAtkinsonDithering(imagePath, maxWidth: 200, maxHeight: 200);
+    hasLogo ? await printImageWithAtkinsonDithering(imagePath, maxWidth: 200, maxHeight: 200) : null;
     await printTextIos(products, saleDate);
     await Future.delayed(const Duration(milliseconds: 500));
   }
@@ -127,13 +127,11 @@ class SalesPrintService {
     bytes += utf8.encode('\x1B\x61\x01');// Negrita OFF
     bytes += utf8.encode('\n\n\n');
 
-    const int chunkSize = 245;
+    const int chunkSize = 180;
     for (int i = 0; i < bytes.length; i += chunkSize) {
       int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
       await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: false);
     }
-
-    //await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
     await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
   }
 
@@ -230,8 +228,6 @@ class SalesPrintService {
       int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
       await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: false);
     }
-
-    //await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
     await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
   }
 

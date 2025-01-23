@@ -50,8 +50,10 @@ Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async 
                       ),
                     ),
                     CheckboxListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: MediaQuery.of(context).size.width * 0.07),
                       title: Text(
-                        'Pagar con tarjeta',
+                        'Pago con tarjeta',
                         style: TextStyle(
                           fontSize: MediaQuery.of(context).size.width * 0.045,
                           color: AppColors.blackColor,

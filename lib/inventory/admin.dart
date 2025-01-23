@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +18,7 @@ import 'package:inventory_app/inventory/stock/products/forms/productForm.dart';
 import 'package:inventory_app/inventory/stock/products/views/products.dart';
 import 'package:inventory_app/inventory/stock/searchBar.dart';
 import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:soundpool/soundpool.dart';
 import '../helpers/utils/PopUpTabs/closeConfirm.dart';
@@ -292,19 +295,59 @@ class _adminInvState extends State<adminInv> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    keyboardVisibilityManager = KeyboardVisibilityManager();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      scannerService.initialize(context, handleBarcode);
-      scannerService.focusNode.requestFocus();
-      focusNode.addListener(() {
-        if (!focusNode.hasFocus) {
-          focusNode.requestFocus();
-        }
-      });
-    });
     super.initState();
+    keyboardVisibilityManager = KeyboardVisibilityManager();
+    bool isUsingTextField = false;
+    keyboardVisibilityManager.keyboardVisibilitySubscription =
+        keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
+          if (visible) {
+            if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
+                FocusManager.instance.primaryFocus?.context?.widget is TextFormField) {
+              isUsingTextField = true;
+              scannerService.focusNode.unfocus(); // Desenfocar el escáner solo si se está usando un campo de texto.
+            }
+          } else {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted && !isUsingTextField) {
+                scannerService.focusNode.requestFocus(); // Volver a enfocar el escáner si no se está usando el teclado.
+              }
+            });
+          }
+        });
+    /*keyboardVisibilityManager.keyboardVisibilitySubscription =
+        keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
+          if (visible) {
+            isUsingTextField = true;
+            scannerService.focusNode.unfocus();
+          } else {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted && !isUsingTextField) {
+                scannerService.focusNode.requestFocus();
+              }
+            });
+          }
+        });*/
+    Future.microtask(() {
+      if (mounted) {
+        scannerService.initialize(context, handleBarcode);
+        scannerService.focusNode.addListener(() {
+          if (!isUsingTextField && mounted) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted && !scannerService.focusNode.hasFocus && !keyboardVisibilityManager.keyboardVisibilityController.isVisible) {
+                scannerService.focusNode.requestFocus();
+              }
+            });
+          }
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            scannerService.focusNode.requestFocus();
+          }
+        });
+      }
+    });
   }
+
 
   void _onCancelConfirm(bool cancelConfirm) {
     setState(() {
@@ -343,8 +386,10 @@ class _adminInvState extends State<adminInv> {
   @override
   void dispose() {
     // TODO: implement dispose
+    keyboardVisibilityManager.keyboardVisibilitySubscription.cancel();
     keyboardVisibilityManager.dispose();
     scannerService.dispose();
+    focusNode.dispose();
     super.dispose();
   }
 
@@ -496,16 +541,14 @@ class _adminInvState extends State<adminInv> {
                                         height: showScaner ? MediaQuery.of(context).size.width * 0.3 : 40,//37
                                         child: showScaner ? ScanBarCode(onShowScan: onShowScan, onScanProd: onScanProd) : TextFormField(
                                           onTap: () async {
-                                            focusNode.unfocus();
                                             await Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) => Seeker(onShowBlur: onShowBlurr, listenerblurr: Listenerblurr(),),
                                               ),
-                                            );
-                                            if (mounted) {
-                                              FocusScope.of(context).unfocus();
-                                            }
+                                            ).then((_){
+                                              focusNode.unfocus();
+                                            });
                                           },
                                           controller: searchController,
                                           focusNode: focusNode,
@@ -666,9 +709,32 @@ class _adminInvState extends State<adminInv> {
                                     });
                                   },
                                   child: Container(
+                                    alignment: Alignment.center,
                                     width: double.infinity,
                                     height: double.infinity,
                                     color: AppColors.blackColor.withOpacity(0.3),
+                                    child: Container(
+                                      padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.05),
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.whiteColor,
+                                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                                      ),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text('Procesando la venta, espere...',
+                                            style: TextStyle(
+                                              color: AppColors.primaryColor,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: MediaQuery.of(context).size.width * 0.05,
+                                            ),),
+                                          const SizedBox(height: 20,),
+                                          const CircularProgressIndicator(
+                                            color: AppColors.primaryColor,
+                                          )
+                                        ],
+                                      )
+                                    ),
                                   ))))])),
             Visibility(
                 visible: lockScreen,

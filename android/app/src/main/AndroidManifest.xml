@@ -22,13 +22,15 @@
         android:icon="@mipmap/ic_launcher">
 
         <!-- Configuración principal de la actividad -->
+        <!-- Configuración principal de la actividad -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
-            android:theme="@style/LaunchTheme"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode|navigation|screenLayout|density|keyboard|keyboardHidden|screenSize"
             android:hardwareAccelerated="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="portrait"
+            android:theme="@style/LaunchTheme"
             android:windowSoftInputMode="adjustResize">
 
             <!-- Tema de la actividad -->

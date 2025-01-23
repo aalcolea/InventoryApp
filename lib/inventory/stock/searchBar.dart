@@ -83,7 +83,7 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
   /// finaliza
   late KeyboardVisibilityManager keyboardVisibilityManager;
   final TextEditingController searchController = TextEditingController();
-  final FocusNode focusNode = FocusNode();
+  FocusNode focusNode = FocusNode();
   double? screenWidth;
   bool hasMoreItems = true;
   final String baseURL = 'https://inventorioapp-ea98995372d9.herokuapp.com/api/categories';
@@ -112,18 +112,22 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
 
   @override
   void initState() {
+    super.initState();
     keyboardVisibilityManager = KeyboardVisibilityManager();
     //loadFirstItems();
     //fetchProducts();
     widget.listenerblurr.registrarObservador((newValue){
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      focusNode.requestFocus();
+    });
     // TODO: implement initState
-    super.initState();
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
+    focusNode.dispose();
     keyboardVisibilityManager.dispose();
     super.dispose();
   }
@@ -391,9 +395,9 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                             color: Colors.transparent,
                             height: MediaQuery.of(context).size.width * 0.105,//37
                             child: TextFormField(
+                              autofocus: true,
                               controller: searchController,
                               focusNode: focusNode,
-                              autofocus: true,
                               decoration: InputDecoration(
                                 contentPadding: EdgeInsets.zero,
                                 hintText: 'Buscar producto...',

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
+import 'package:inventory_app/establishmentInfo.dart';
 import 'package:provider/provider.dart';
 import '../../../print/printConnections.dart';
 import '../../../print/printService.dart';
@@ -438,8 +439,8 @@ class _CartState extends State<Cart> {
                   if(canPrint){
                     PrintService2 printService2 = PrintService2(widget.printService.characteristic!);
                     try{
-                       Platform.isAndroid ? await printService2.connectAndPrintAndroide(cartProvider.cart, 'assets/imgLog/logoTest.png') :
-                        await printService2.connectAndPrintIOS(cartProvider.cart, 'assets/imgLog/logoTest.png');
+                       Platform.isAndroid ? await printService2.connectAndPrintAndroide(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo) :
+                        await printService2.connectAndPrintIOS(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo);
                     } catch(e){
                       print("Error al intentar imprimir: $e");
                       showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));

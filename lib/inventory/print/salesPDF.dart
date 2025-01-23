@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 import 'dart:io';
+import 'package:inventory_app/establishmentInfo.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/services/salesServices.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -15,9 +16,11 @@ class SalesPDF extends StatefulWidget {
   final String nameEstableciment;
   final String direccion;
   final String email;
+  final double totalEfectivo;
+  final double totalTarjeta;
   final List<Map<String, dynamic>> sales;
 
-  const SalesPDF({super.key, required this.sales, required this.nameEstableciment, required this.direccion, required this.email});
+  const SalesPDF({super.key, required this.sales, required this.nameEstableciment, required this.direccion, required this.email, required this.totalEfectivo, required this.totalTarjeta});
 
   @override
   _SalesPDFState createState() => _SalesPDFState();
@@ -53,8 +56,13 @@ class _SalesPDFState extends State<SalesPDF> {
       totalVenta += producto['total'];
     }
     pdf = pw.Document();
-    /*final imageBytes = await rootBundle.load('assets/imgLog/logoTest.png');
-    final image = pw.MemoryImage(imageBytes.buffer.asUint8List());*/
+    late final imageBytes;
+    late final image;
+    if(Establishmentinfo.logo){
+      imageBytes = await rootBundle.load(Establishmentinfo.logoRootAsset);
+      image = pw.MemoryImage(imageBytes.buffer.asUint8List());
+    }
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a5,
@@ -69,10 +77,10 @@ class _SalesPDFState extends State<SalesPDF> {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        /*pw.Image(
+                        if(Establishmentinfo.logo)...[pw.Image(
                             image,
                             width: 75
-                        ),*/
+                        ),],
                         pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.end,
                           children: [
@@ -300,6 +308,99 @@ class _SalesPDFState extends State<SalesPDF> {
                               );
                             }
                         ),
+
+                        pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.end,
+                            children: [
+                              pw.Container(
+                                  padding: const pw.EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 2),
+                                  margin: const pw.EdgeInsets.only(right: 2, top: 5),
+                                  color: PdfColors.blue900,
+                                  width: 90,
+                                  child: pw.Text(
+                                    'Efectivo',
+                                    style: const pw.TextStyle(
+                                      fontSize: 11,
+                                      color: PdfColors.white,
+                                    ),
+                                    textAlign: pw.TextAlign.center,
+                                  )
+                              ),
+                              pw.Container(
+                                  padding: const pw.EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 2),
+                                  margin: const pw.EdgeInsets.only(right: 2, top: 5),
+                                  color: PdfColors.blue100,
+                                  width: 90,
+                                  child: pw.Row(
+                                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        pw.Text(
+                                          '\$',
+                                          style: const pw.TextStyle(
+                                            fontSize: 11,
+                                            color: PdfColors.black,
+                                          ),
+                                          textAlign: pw.TextAlign.center,
+                                        ),
+                                        pw.Text(
+                                          widget.totalEfectivo.toStringAsFixed(2),
+                                          style: const pw.TextStyle(
+                                            fontSize: 11,
+                                            color: PdfColors.black,
+                                          ),
+                                          textAlign: pw.TextAlign.center,
+                                        )
+                                      ]
+                                  )
+                              )
+                            ]
+                        ), pw.Row(
+                            mainAxisAlignment: pw.MainAxisAlignment.end,
+                            children: [
+                              pw.Container(
+                                  padding: const pw.EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 2),
+                                  margin: const pw.EdgeInsets.only(right: 2, top: 5),
+                                  color: PdfColors.blue900,
+                                  width: 90,
+                                  child: pw.Text(
+                                    'Tarjeta',
+                                    style: const pw.TextStyle(
+                                      fontSize: 11,
+                                      color: PdfColors.white,
+                                    ),
+                                    textAlign: pw.TextAlign.center,
+                                  )
+                              ),
+                              pw.Container(
+                                  padding: const pw.EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 2),
+                                  margin: const pw.EdgeInsets.only(right: 2, top: 5),
+                                  color: PdfColors.blue100,
+                                  width: 90,
+                                  child: pw.Row(
+                                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        pw.Text(
+                                          '\$',
+                                          style: const pw.TextStyle(
+                                            fontSize: 11,
+                                            color: PdfColors.black,
+                                          ),
+                                          textAlign: pw.TextAlign.center,
+                                        ),
+                                        pw.Text(
+                                          widget.totalTarjeta.toStringAsFixed(2),
+                                          style: const pw.TextStyle(
+                                            fontSize: 11,
+                                            color: PdfColors.black,
+                                          ),
+                                          textAlign: pw.TextAlign.center,
+                                        )
+                                      ]
+                                  )
+                              )
+                            ]
+                        ),
+
                         pw.Row(
                             mainAxisAlignment: pw.MainAxisAlignment.end,
                             children: [

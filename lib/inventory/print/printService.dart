@@ -12,13 +12,13 @@ class PrintService2 {
   BluetoothCharacteristic? characteristic;
   PrintService2(this.characteristic);
 
-  Future<void> connectAndPrintAndroide(List<Map<String, dynamic>> carrito, String imagePath) async {
+  Future<void> connectAndPrintAndroide(List<Map<String, dynamic>> carrito, String imagePath, bool hasLogo) async {
     if (characteristic == null) {
       print("Error: No se encontró la característica para imprimir.");
       return;
     }
     await centrar();
-    await printImageBW(imagePath);
+    hasLogo ? await printImageBW(imagePath) : null;
     await printText(carrito);
     await Future.delayed(const Duration(milliseconds: 500));
   }
@@ -29,36 +29,36 @@ class PrintService2 {
     await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
   }
 
-  Future<void> connectAndPrintAndroideTicket(List<dynamic> carrito, String imagePath) async {
+  Future<void> connectAndPrintAndroideTicket(List<dynamic> carrito, String imagePath, bool hasLogo) async {
     if (characteristic == null) {
       print("Error: No se encontró la característica para imprimir.");
       return;
     }
 
     await centrar();
-    await printImageBW(imagePath);
+    hasLogo ? await printImageBW(imagePath) : null;
     await printTicketText(carrito);
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
-  Future<void> connectAndPrintIOS(List<Map<String, dynamic>> carrito, String imagePath) async {
+  Future<void> connectAndPrintIOS(List<Map<String, dynamic>> carrito, String imagePath, bool hasLogo) async {
     if (characteristic == null) {
       print("Error: No se encontró la característica para imprimir.");
       return;
     }
 
-    await printImageWithAtkinsonDithering(imagePath, maxWidth: 200, maxHeight: 200);
+    hasLogo ? await printImageWithAtkinsonDithering(imagePath, maxWidth: 200, maxHeight: 200) : null;
     await printText(carrito);
     await Future.delayed(const Duration(milliseconds: 500));
   }
 
-  Future<void> connectAndPrintIOSTicket(List<dynamic> carrito, String imagePath) async {
+  Future<void> connectAndPrintIOSTicket(List<dynamic> carrito, String imagePath, bool hasLogo) async {
     if (characteristic == null) {
       print("Error: No se encontró la característica para imprimir.");
       return;
     }
 
-    await printImageWithAtkinsonDithering(imagePath, maxWidth: 200, maxHeight: 200);
+    hasLogo ? await printImageWithAtkinsonDithering(imagePath, maxWidth: 200, maxHeight: 200) : null;
     await printTicketText(carrito);
     await Future.delayed(const Duration(milliseconds: 500));
   }
@@ -254,12 +254,7 @@ class PrintService2 {
       int end = (i + chunkSize > bytes.length) ? bytes.length : i + chunkSize;
       await characteristic!.write(Uint8List.fromList(bytes.sublist(i, end)), withoutResponse: true);
     }
-
-    // Enviar un salto de línea final
     await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
-
-    //await characteristic!.write(Uint8List.fromList(bytes), withoutResponse: false);
-    //await characteristic!.write(Uint8List.fromList([0x0A]), withoutResponse: false);
   }
 
   //funcion para imprimir imagen android

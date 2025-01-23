@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:inventory_app/establishmentInfo.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
@@ -35,6 +36,8 @@ class _SalesListState extends State<SalesList> {
   String? _initDate;
   String? _finalDate;
   String? query;
+  double cantTotalEfectivo = 0;
+  double cantTotalTarjeta = 0;
 
   void filterSales(String? query) {
     if (mounted) {
@@ -84,11 +87,18 @@ class _SalesListState extends State<SalesList> {
     });
     try{
       final salesService = SalesServices();
-      //await salesService.fetchSales();
+      final tickets2 = await salesService.fetchSales(initData, finalData);//esto es para obtener el $ total de efectivo y tarjeta
       final products2 = await salesService.getSalesByProduct(initData, finalData);
+      products = products2;
+      productsFilterd = products;
+      for (var ticket in tickets2) {
+        if (ticket["tipoVenta"] == "Efectivo") {
+          ticket['total'] != null ? cantTotalEfectivo += double.parse(ticket['total']) : null;
+        } else if(ticket["tipoVenta"] == "Tarjeta"){
+          ticket['total'] != null ? cantTotalTarjeta += double.parse(ticket['total']) : null;
+        }
+      }
       setState(() {
-        products = products2;
-        productsFilterd = products;
         isLoading = false;
       });
     }catch (e) {
@@ -111,23 +121,20 @@ class _SalesListState extends State<SalesList> {
         cat = fetchedItems;
         offset += limit;
         isLoading = false;
-        print('jajaja $cat');
       });
     }catch(e){
-      print('Error al cargar los items jaja $e');
+      print('Error al cargar los items $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    print(productsFilterd);
     return Container(
       color: AppColors.bgColor,
       child: Column(
         children: [
-          Expanded(
-            child: !isLoading
-                ? ( products.isNotEmpty ? ListView.builder(
+          Expanded(///mejorar este ternario
+            child: !isLoading ? ( products.isNotEmpty ? ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.02),
               itemCount: productsFilterd.length,
               itemBuilder: (context, index) {
@@ -233,7 +240,7 @@ class _SalesListState extends State<SalesList> {
             ) : const Center(
               child: Text(
                 textAlign: TextAlign.center,
-                'No hay tickets correspondientes a la fecha seleccionada',
+                 'No hay ventas correspondientes a la fecha seleccionada',
                 style: TextStyle(
                   color: AppColors.primaryColor,
                 ),
@@ -277,8 +284,9 @@ class _SalesListState extends State<SalesList> {
                       if (canPrint) {
                         salesPrintService = SalesPrintService(widget.printService.characteristic!);
                         try{
-                          Platform.isAndroid ? await salesPrintService.connectAndPrintAndroide(productsFilterd, 'assets/imgLog/logoTest.png', products[0]['fecha_venta']) :
-                      await salesPrintService.connectAndPrintIOS(productsFilterd, 'assets/imgLog/logoTest.png', products[0]['fecha_venta']);
+                          Platform.isAndroid ? await salesPrintService.connectAndPrintAndroide(productsFilterd, Establishmentinfo.logoRootAsset,
+                              products[0]['fecha_venta'], Establishmentinfo.logo) :
+                      await salesPrintService.connectAndPrintIOS(productsFilterd, Establishmentinfo.logoRootAsset, products[0]['fecha_venta'], Establishmentinfo.logo);
                       } catch(e){
                       print("Error al intentar imprimir: $e");
                       showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));
@@ -303,7 +311,9 @@ class _SalesListState extends State<SalesList> {
                     onPressed: () {
                       Navigator.of(context).push(
                         CupertinoPageRoute(
-                          builder: (context) => SalesPDF(sales: productsFilterd, nameEstableciment: 'MiniSuper San Juan Diego', direccion: '', email: '',),
+                          builder: (context) => SalesPDF(
+                            sales: productsFilterd, nameEstableciment: Establishmentinfo.name, direccion: Establishmentinfo.street,
+                              email:  Establishmentinfo.email, totalEfectivo: cantTotalEfectivo, totalTarjeta: cantTotalTarjeta),
                         ),
                       );
                     },

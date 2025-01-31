@@ -426,24 +426,27 @@ class _CartState extends State<Cart> {
                 final confirmData = await showConfirmSellDialog(context);
                 if (confirmData != null) {
                   bool isCardPayment = confirmData['isCardPayment'] ?? false;
+                  bool shouldPrint = confirmData['shouldPrint'] ?? false;
                   bool canPrint = false;
-                  try{
-                    await widget.printService.ensureCharacteristicAvailable();
-                    if(widget.printService.characteristic != null){
-                      canPrint = true;
-                    }
-                  }catch(e){
-                    print("Error: No hay impresora conectada  - $e");
-                    showOverlay(context, const CustomToast(message: 'Impresion no disponible, continuando con la venta'));
-                  }
-                  if(canPrint){
-                    PrintService2 printService2 = PrintService2(widget.printService.characteristic!);
+                  if (shouldPrint) {
                     try{
-                       Platform.isAndroid ? await printService2.connectAndPrintAndroide(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo) :
-                        await printService2.connectAndPrintIOS(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo);
-                    } catch(e){
-                      print("Error al intentar imprimir: $e");
-                      showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));
+                      await widget.printService.ensureCharacteristicAvailable();
+                      if(widget.printService.characteristic != null){
+                        canPrint = true;
+                      }
+                    }catch(e){
+                      print("Error: No hay impresora conectada  - $e");
+                      showOverlay(context, const CustomToast(message: 'Impresion no disponible, continuando con la venta'));
+                    }
+                    if(canPrint){
+                      PrintService2 printService2 = PrintService2(widget.printService.characteristic!);
+                      try{
+                         Platform.isAndroid ? await printService2.connectAndPrintAndroide(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo) :
+                          await printService2.connectAndPrintIOS(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo);
+                      } catch(e){
+                        print("Error al intentar imprimir: $e");
+                        showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));
+                      }
                     }
                   }
                   bool result = await cartProvider.sendCart(isCardPayment);

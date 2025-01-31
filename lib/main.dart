@@ -1,15 +1,9 @@
-import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:inventory_app/inventory/deviceManager.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
-import 'globalVar.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-
 import 'helpers/services/databaseHelpers.dart';
 import 'helpers/themes/colors.dart';
 import 'helpers/views/login.dart';
@@ -19,9 +13,6 @@ final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
 void main() async {
 
   WidgetsFlutterBinding.ensureInitialized();
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
   await Firebase.initializeApp();
   FirebaseMessaging messaging = FirebaseMessaging.instance;
   NotificationSettings settings = await messaging.requestPermission(

@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:soundpool/soundpool.dart';
+import '../../../../deviceThresholds.dart';
 import '../../../scanBarCode.dart';
 import '../../../themes/colors.dart';
 import '../../../../helpers/utils/showToast.dart';
@@ -20,7 +21,7 @@ class ProductForm extends StatefulWidget {
   State<ProductForm> createState() => _ProductFormState();
 }
 
-class _ProductFormState extends State<ProductForm> {
+class _ProductFormState extends State<ProductForm> with WidgetsBindingObserver {
 
   late KeyboardVisibilityManager keyboardVisibilityManager;
 
@@ -49,8 +50,14 @@ class _ProductFormState extends State<ProductForm> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    screenWidth = MediaQuery.of(context).size.width;
-    screenHeight = MediaQuery.of(context).size.height;
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
+
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
   }
 
   void changeFocus(
@@ -73,19 +80,63 @@ class _ProductFormState extends State<ProductForm> {
     }
   }
 
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
+
+
   @override
   void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     existenciasController.text = '1';
     keyboardVisibilityManager = KeyboardVisibilityManager();
     addTextListeners([nameController, precioRetailController, precioPublico, barCodeController, existenciasController]);
     // TODO: implement initState
-    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeDeviceType();
+  }
+
+  void _initializeDeviceType() {
+    // Obtener el tamaño de la pantalla desde el binding
+    final window = WidgetsBinding.instance.window;
+    // Obtener el factor de pixel de la pantalla
+    final devicePixelRatio = window.devicePixelRatio;
+    // Obtener el tamaño en pixels lógicos
+    final physicalSize = window.physicalSize;
+    // Convertir a tamaño lógico
+    screenWidth = physicalSize.width / devicePixelRatio;
+    screenHeight = physicalSize.height / devicePixelRatio;
+    // Determinar la orientación
+    orientation = screenWidth! > screenHeight! ? Orientation.landscape : Orientation.portrait;
+    // Verificar si es tablet
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
+  }
+
+  bool isTabletDevice(double width, double height, Orientation deviceOrientation) {
+    if (deviceOrientation == Orientation.portrait) {
+      return height > DeviceThresholds.minTabletHeightPortrait &&
+          width > DeviceThresholds.minTabletWidth;
+    } else {
+      return height > DeviceThresholds.minTabletHeightLandscape &&
+          width > DeviceThresholds.minTabletWidthLandscape;
+    }
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
     keyboardVisibilityManager.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     super.dispose();
   }
 
@@ -180,13 +231,13 @@ class _ProductFormState extends State<ProductForm> {
             leading: Row(
               children: [
                 IconButton(
-                  padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.0),
                   onPressed: () {
                     Navigator.pop(context);
                   },
                   icon: Icon(
                     CupertinoIcons.back,
-                    size: MediaQuery.of(context).size.width * 0.08,
+                    size: !isTablet ? MediaQuery.of(context).size.width * 0.08 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.08 :
+                    MediaQuery.of(context).size.height * 0.08,
                     color: AppColors.primaryColor,
                   ),
                 ),
@@ -200,10 +251,11 @@ class _ProductFormState extends State<ProductForm> {
                           'Agregar Producto',
                         style: TextStyle(
                           color: AppColors.primaryColor,
-                          fontSize: screenWidth! < 370.00
+                          fontSize: !isTablet ? screenWidth! < 370.00
                               ? MediaQuery.of(context).size.width * 0.078
-                              : MediaQuery.of(context).size.width * 0.082,
-                          fontWeight: FontWeight.bold,
+                              : MediaQuery.of(context).size.width * 0.082 : orientation == Orientation.portrait ?
+                          MediaQuery.of(context).size.width * 0.073 : MediaQuery.of(context).size.height * 0.078,
+                          fontWeight: FontWeight.w500,
                         ),)
                     ]))
               ],
@@ -218,7 +270,7 @@ class _ProductFormState extends State<ProductForm> {
                children: [
                  Column(
                    children: [
-                     TitleModContainer(text: 'Nombre', ),
+                     TitleModContainer(text: 'Nombre', isTablet: isTablet),
                      Padding(
                          padding: EdgeInsets.only(
                              left: MediaQuery.of(context).size.width * 0.03,
@@ -249,7 +301,7 @@ class _ProductFormState extends State<ProductForm> {
 
                  Column(
                    children: [
-                     TitleModContainer(text: 'Descripción', ),
+                     TitleModContainer(text: 'Descripción', isTablet: isTablet),
                      Padding(
                          padding: EdgeInsets.only(
                              left: MediaQuery.of(context).size.width * 0.03,
@@ -271,7 +323,7 @@ class _ProductFormState extends State<ProductForm> {
 
                  Column(
                    children: [
-                     TitleModContainer(text: 'Precio del proveedor', ),
+                     TitleModContainer(text: 'Precio del proveedor', isTablet: isTablet),
                      Padding(
                          padding: EdgeInsets.only(
                              left: MediaQuery.of(context).size.width * 0.03,
@@ -299,7 +351,7 @@ class _ProductFormState extends State<ProductForm> {
                  ),
                  Column(
                    children: [
-                     TitleModContainer(text: 'Precio al público', ),
+                     TitleModContainer(text: 'Precio al público', isTablet: isTablet),
                      Padding(
                          padding: EdgeInsets.only(
                              left: MediaQuery.of(context).size.width * 0.03,
@@ -327,7 +379,7 @@ class _ProductFormState extends State<ProductForm> {
                  ),
                  Column(
                    children: [
-                     TitleModContainer(text: 'Código de barras'),
+                     TitleModContainer(text: 'Código de barras', isTablet: isTablet),
                      Padding(
                        padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.03),
                        child: Builder(builder: (context){
@@ -384,7 +436,7 @@ class _ProductFormState extends State<ProductForm> {
                  ),
                  Column(
                    children: [
-                     TitleModContainer(text: 'Existencias', ),
+                     TitleModContainer(text: 'Existencias', isTablet: isTablet),
                      Padding(
                          padding: EdgeInsets.only(
                              left: MediaQuery.of(context).size.width * 0.03,
@@ -412,13 +464,14 @@ class _ProductFormState extends State<ProductForm> {
 
                  Column(
                      children: [
-                       TitleModContainer(text: 'Categoria'),
+                       TitleModContainer(text: 'Categoria', isTablet: isTablet),
                        Padding(padding: EdgeInsets.only(
                            left: MediaQuery.of(context).size.width * 0.03,
                            right: MediaQuery.of(context).size.width * 0.03),
                            child: CategoryBox(formType: 1, onSelectedCat: onSelectedCat))]),
 
-                 Padding(padding: EdgeInsets.only(
+                 Padding(
+                   padding: EdgeInsets.only(
                    top: MediaQuery.of(context).size.width * 0.07,
                    bottom: MediaQuery.of(context).size.width * 0.1,
                    left: MediaQuery.of(context).size.width * 0.03,
@@ -431,12 +484,15 @@ class _ProductFormState extends State<ProductForm> {
                          borderRadius: BorderRadius.circular(10),
                        ),
                        backgroundColor: AppColors.primaryColor,
-                       padding: EdgeInsets.symmetric(
+                       padding: !isTablet ? EdgeInsets.symmetric(
                          horizontal: MediaQuery.of(context).size.width * 0.15,
                          vertical: MediaQuery.of(context).size.width * 0.03,
+                       ) : EdgeInsets.symmetric(
+                         horizontal: MediaQuery.of(context).size.width * 0.12,
+                         vertical: MediaQuery.of(context).size.width * 0.015,
                        ),
                      ), child: !isLoading ? Text('Crear Producto', style: TextStyle(
-                       fontSize: MediaQuery.of(context).size.width * 0.06,
+                       fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.06 : MediaQuery.of(context).size.width * 0.055,
                        color: AppColors.whiteColor
                    ),) : const CircularProgressIndicator(color: Colors.white,),
                    ),),

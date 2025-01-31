@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import '../../../../deviceThresholds.dart';
 import '../../../themes/colors.dart';
 import '../../utils/listenerBlurr.dart';
 import '../forms/categoryForm.dart';
@@ -8,19 +9,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_keyboard_visibility/flutter_keyboard_visibility.dart';
 import 'package:http/http.dart' as http;
-
 import '../forms/editCategoryForm.dart';
+
 class Categories extends StatefulWidget {
+  final bool isTablet;
   final GlobalKey<ProductsState> productsKey;
-  final void Function(
-      bool,
-      ) onHideBtnsBottom;
-  final void Function(
-      bool,
-      ) onShowBlur;
+  final void Function(bool) onHideBtnsBottom;
+  final void Function(bool) onShowBlur;
   final Listenerblurr listenerblurr;
 
-  const Categories({super.key, required this.onHideBtnsBottom, required this.onShowBlur, required this.productsKey, required this.listenerblurr});
+  const Categories({super.key, required this.onHideBtnsBottom, required this.onShowBlur, required this.productsKey, required this.listenerblurr, required this.isTablet});
 
 
   @override
@@ -78,21 +76,87 @@ class _CategoriesState extends State<Categories> {
         isSelecting = true;
       }
     });
-    print("Selected Categories: $selectedCategories");
-    print("Is Selecting: $isSelecting");
   }
 
   @override
   void initState() {
     super.initState();
     isLoading = true;
+    isTablet = widget.isTablet;
     keyboardVisibilityController = KeyboardVisibilityController();
     checkKeyboardVisibility();
-    loadFirstItems();
+    //loadFirstItems();
     widget.listenerblurr.registrarObservador((newValue){
 
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (isTablet) {
+        setState(() {
+          limit = orientation == Orientation.portrait
+              ? DeviceThresholds.itemLimitPortrait
+              : DeviceThresholds.itemLimitLandscape;
+        });
+      } else {
+        setState(() {
+          limit = 6;
+        });
+      }
+      loadFirstItems();
+    });
   }
+
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
+  double? screenWidth;
+  double? screenHeight;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
+    isTablet = _isTabletDevice(screenWidth!, screenHeight!, orientation);
+    if (isTablet) {
+      setState(() {
+        limit = orientation == Orientation.portrait
+            ? DeviceThresholds.itemLimitPortrait
+            : DeviceThresholds.itemLimitLandscape;
+      });
+    } else {
+      setState(() {
+        limit = 6;
+      });
+    }
+    loadFirstItems();
+  }
+
+  bool _isTabletDevice(double width, double height, Orientation deviceOrientation) {
+    if (deviceOrientation == Orientation.portrait) {
+      return height > DeviceThresholds.minTabletHeightPortrait &&
+          width > DeviceThresholds.minTabletWidth;
+    } else {
+      return height > DeviceThresholds.minTabletHeightLandscape &&
+          width > DeviceThresholds.minTabletWidthLandscape;
+    }
+  }
+
+    /*screenWidth = MediaQuery.of(context).size.width;
+    screenHeight = MediaQuery.of(context).size.height;
+    orientation = MediaQuery.of(context).orientation;
+    orientation == Orientation.portrait ? screenHeight! > 900 && screenWidth! > 550 ?
+      isTablet = true : screenHeight! > 550 && screenWidth! > 940 ? isTablet = true : null : null;
+    if(isTablet && orientation == Orientation.portrait){
+      setState(() {
+        limit = 9;
+      });
+    }else if(isTablet && orientation == Orientation.landscape){
+      setState(() {
+        limit = 4;
+      });
+    }
+    loadFirstItems();*/
 
   @override
   void dispose() {
@@ -104,7 +168,7 @@ class _CategoriesState extends State<Categories> {
   ///test alan functiosn
   ///init tiene una function
   ///TODO ESTO IRA A UN SERVICIO
-  int limit = 6;
+  late int limit;
   int offset = 0;
   List<Map<String, dynamic>> items = [];
   Future<void> loadFirstItems() async{
@@ -114,7 +178,7 @@ class _CategoriesState extends State<Categories> {
         offset = 0;
         hasMoreItems = true;
       });
-      List<Map<String, dynamic>> fetchedItems = await fetchItems(limit: limit, offset: offset);
+      List<Map<String, dynamic>> fetchedItems = await fetchItems(limit: limit, offset: 0);
       setState(() {
         items = fetchedItems;
         offset += limit;
@@ -153,10 +217,10 @@ class _CategoriesState extends State<Categories> {
 
   void _ensureAddCatAtTheEnd() {
     items.removeWhere((item) => item['category'] == 'addCat');
-    for (int i = 5; i <= items.length; i += 6) {
+    for (int i = limit -1; i <= items.length; i += limit) { //en vez de 9 va un 6 originalmente //en vez de 8 originalmente va un 5
       items.insert(i, {'category': 'addCat', 'id': 'addCat'});
     }
-    if (items.length % 6 != 0) {
+    if (items.length % limit != 0) {//en vez de 9 va un 6 originalmente
       items.add({'category': 'addCat', 'id': 'addCat'});
     } else {
       items.add({'category': 'addCat', 'id': 'addCat'});
@@ -164,7 +228,7 @@ class _CategoriesState extends State<Categories> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchItems({int limit = 6, int offset = 0}) async{
+  Future<List<Map<String, dynamic>>> fetchItems({limit, int offset = 0}) async{//en vez de 9 va un 6 originalmente
     final response = await http.get(Uri.parse(baseURL + '?limit=$limit&offset=$offset'));
     if(response.statusCode == 200){
       final List<dynamic> data = json.decode(response.body)['data'];
@@ -206,14 +270,15 @@ class _CategoriesState extends State<Categories> {
 
   @override
   Widget build(BuildContext context) {
-    int itemsPerPage = 6;
+    int itemsPerPage = orientation == Orientation.portrait ? !isTablet ? 6 : 9 : 4;
     return isLoading == false ? Container(
       color: AppColors.bgColor,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Expanded(
             child: SizedBox(
-              height: 580,
+              //height: 580,
               ///ENVOLVER EN NOTIFICATION DECIA GPT, AUN EN PRUEBAS
               child: NotificationListener<ScrollNotification>(
                 onNotification: (ScrollNotification scrollInfo) {
@@ -223,7 +288,7 @@ class _CategoriesState extends State<Categories> {
                   return true;
                 },
                 child: PageView.builder(
-                    scrollDirection: Axis.vertical,
+                    scrollDirection: orientation == Orientation.landscape ? Axis.horizontal : Axis.vertical,
                     itemCount: (items.length / itemsPerPage).ceil(),
                     itemBuilder: (context, pageIndex) {
                       int startIndex = pageIndex * itemsPerPage;
@@ -234,14 +299,19 @@ class _CategoriesState extends State<Categories> {
                       var currentPageItems = items.sublist(startIndex, endIndex);
                       return GridView.builder(
                         physics: const NeverScrollableScrollPhysics(),
-                        padding: EdgeInsets.only(
+                        padding: orientation == Orientation.portrait ?  EdgeInsets.only(
                           top: MediaQuery.of(context).size.width * 0.02,
-                          bottom: MediaQuery.of(context).size.width * 0.01,
+                          bottom: MediaQuery.of(context).size.width * 0.02,
                           left: MediaQuery.of(context).size.width * 0.01,
                           right: MediaQuery.of(context).size.width * 0.01,
+                        ) : EdgeInsets.only(
+                          top: MediaQuery.of(context).size.width * 0.02,
+                          bottom: MediaQuery.of(context).size.height * 0.02,
+                          left: MediaQuery.of(context).size.height * 0.01,
+                          right: MediaQuery.of(context).size.height * 0.01,
                         ),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: !isTablet ? 2 : orientation == Orientation.portrait ? 3 : 4,
                         ),
                         itemCount: currentPageItems.length,
                         itemBuilder: (context, index) {
@@ -270,16 +340,18 @@ class _CategoriesState extends State<Categories> {
                               }
                             },
                             child: Card(
-                              margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.1),
                               color: Colors.transparent,
                               shadowColor: Colors.transparent,
                               child: Padding(
-                                  padding: EdgeInsets.only(
+                                  padding: orientation == Orientation.portrait ? EdgeInsets.only(
                                     left: MediaQuery.of(context).size.width * 0.02,
                                     right: MediaQuery.of(context).size.width * 0.02,
+                                  ) : EdgeInsets.only(
+                                    left: MediaQuery.of(context).size.height * 0.02,
+                                    right: MediaQuery.of(context).size.height * 0.02,
                                   ),
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    mainAxisAlignment: orientation == Orientation.portrait ? MainAxisAlignment.start : MainAxisAlignment.center,
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Container(
@@ -296,19 +368,29 @@ class _CategoriesState extends State<Categories> {
                                               )
                                             ],
                                           ),
-                                          height: MediaQuery.of(context).size.width * 0.35,
+                                          height: !isTablet ? MediaQuery.of(context).size.width * 0.35 : orientation == Orientation.portrait ?
+                                          MediaQuery.of(context).size.width * 0.2 : MediaQuery.of(context).size.height * 0.3,
                                           width: MediaQuery.of(context).size.width * 0.5,
                                           child: ClipRRect(
                                               borderRadius: BorderRadius.circular(10),
                                               child: Icon(
                                                 CupertinoIcons.add,
                                                 color: AppColors.primaryColor.withOpacity(0.3),
-                                                size: MediaQuery.of(context).size.width * 0.15,
+                                                size: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.15 : MediaQuery.of(context).size.height * 0.15,
                                               )
                                           )
                                       ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                          "Nueva categoría",
+                                          style: TextStyle(
+                                            color: AppColors.primaryColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.height * 0.015 : MediaQuery.of(context).size.width * 0.014,
+                                          )
+                                      ),
                                     ],
-                                  )
+                                  ),
                               ),
                             ),
                           ) : InkWell(
@@ -337,19 +419,20 @@ class _CategoriesState extends State<Categories> {
                               toggleSelection(item['id'].toString());
                               categoryName = item['category'];
                               categoryImage = item['image'];
-                              print(categoryImage);
                             },
                             child: Card(
-                                margin: EdgeInsets.only(bottom: MediaQuery.of(context).size.width * 0.07),
                                 color: Colors.transparent,
                                 shadowColor: Colors.transparent,
                                 child: Padding(
-                                  padding: EdgeInsets.only(
+                                  padding: orientation == Orientation.portrait ? EdgeInsets.only(
                                       left: MediaQuery.of(context).size.width * 0.02,
                                       right: MediaQuery.of(context).size.width * 0.02
+                                  ) : EdgeInsets.only(
+                                      left: MediaQuery.of(context).size.height * 0.02,
+                                      right: MediaQuery.of(context).size.height * 0.02
                                   ),
                                   child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisAlignment: orientation == Orientation.portrait ? MainAxisAlignment.start : MainAxisAlignment.center,
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Container(
@@ -366,7 +449,8 @@ class _CategoriesState extends State<Categories> {
                                               )
                                             ],
                                           ),
-                                          height: MediaQuery.of(context).size.width * 0.35,
+                                          height: !isTablet ? MediaQuery.of(context).size.width * 0.35 : orientation == Orientation.portrait ?
+                                          MediaQuery.of(context).size.width * 0.2 : MediaQuery.of(context).size.height * 0.3,
                                           width: MediaQuery.of(context).size.width * 0.5,
                                           child: Stack(
                                             fit: StackFit.expand,
@@ -394,10 +478,13 @@ class _CategoriesState extends State<Categories> {
                                                     return Container(
                                                         color: Colors.transparent,
                                                         child: Column(
+                                                          mainAxisAlignment: MainAxisAlignment.center, // Centra los elementos verticalmente
+                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                          mainAxisSize: MainAxisSize.min,
                                                           children: [
                                                             Flexible(
                                                               child: Image.asset('assets/imgLog/notFound.jpg',
-                                                                fit: BoxFit.fill,),),
+                                                                fit: BoxFit.fill),),
                                                             const Text('Imagen no disponible'),
                                                           ],
                                                         )
@@ -418,8 +505,6 @@ class _CategoriesState extends State<Categories> {
                                                           width: MediaQuery.of(context).size.width * 0.01
                                                       )
                                                   ),
-                                                  height: MediaQuery.of(context).size.width * 0.4,
-                                                  width: MediaQuery.of(context).size.width * 0.5,
                                                   child: const Icon(
                                                     CupertinoIcons.check_mark_circled,
                                                     color: AppColors.primaryColor,
@@ -430,16 +515,14 @@ class _CategoriesState extends State<Categories> {
                                           )
                                       ),
                                       const SizedBox(height: 8),
-                                      Expanded(
-                                        child: Text(
+                                      Text(
                                             "${item['category']}",
                                             style: TextStyle(
                                               color: AppColors.primaryColor,
                                               fontWeight: FontWeight.bold,
-                                              fontSize: MediaQuery.of(context).size.height * 0.017,
+                                              fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.height * 0.017 : MediaQuery.of(context).size.width * 0.016,
                                             )
                                         ),
-                                      )
                                     ],
                                   ),
                                 )

@@ -48,8 +48,9 @@ class TitleModContainer extends StatelessWidget {
   final double? width;
   final Alignment? aligment;
   final EdgeInsetsGeometry? padding;
+  final bool isTablet;
 
-  TitleModContainer({required this.text, this.width, this.aligment, this.padding});
+  TitleModContainer({required this.text, this.width, this.aligment, this.padding, required this.isTablet});
 
   @override
   Widget build(BuildContext context) {
@@ -82,8 +83,8 @@ class TitleModContainer extends StatelessWidget {
         text,
         style: TextStyle(
           color: AppColors.whiteColor,
-          fontSize: MediaQuery.of(context).size.width * 0.045,
-          fontWeight: FontWeight.bold,
+          fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.045 : MediaQuery.of(context).size.width * 0.04,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

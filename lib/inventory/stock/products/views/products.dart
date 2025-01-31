@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inventory_app/inventory/stock/products/views/productDetails.dart';
 import 'package:provider/provider.dart';
+import '../../../../deviceThresholds.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../kboardVisibilityManager.dart';
@@ -29,7 +30,7 @@ class Products extends StatefulWidget {
   ProductsState createState() => ProductsState();
 }
 
-class ProductsState extends State<Products> with TickerProviderStateMixin {
+class ProductsState extends State<Products> with TickerProviderStateMixin, WidgetsBindingObserver {
   List<GlobalKey> productKeys = [];
   OverlayEntry? overlayEntry;
 
@@ -69,14 +70,45 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
       aniControllers.add(AnimationController(vsync: this, duration: const Duration(milliseconds: 450)));
       cantHelper.add(0);
     }
-    print('pglobar $products_global');
     fetchProducts();
     widget.listenerblurr.registrarObservador((newValue){
       if(newValue == false){
         removeOverlay();
       }
     });
+    WidgetsBinding.instance.addObserver(this);
+    _initializeDeviceType();
   }
+
+  void _initializeDeviceType() {
+    // Obtener el tamaño de la pantalla desde el binding
+    final window = WidgetsBinding.instance.window;
+    // Obtener el factor de pixel de la pantalla
+    final devicePixelRatio = window.devicePixelRatio;
+    // Obtener el tamaño en pixels lógicos
+    final physicalSize = window.physicalSize;
+    // Convertir a tamaño lógico
+    screenWidth = physicalSize.width / devicePixelRatio;
+    screenHeight = physicalSize.height / devicePixelRatio;
+    // Determinar la orientación
+    orientation = screenWidth! > screenHeight! ? Orientation.landscape : Orientation.portrait;
+    // Verificar si es tablet
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
+  }
+
+  bool isTabletDevice(double width, double height, Orientation deviceOrientation) {
+    if (deviceOrientation == Orientation.portrait) {
+      return height > DeviceThresholds.minTabletHeightPortrait &&
+          width > DeviceThresholds.minTabletWidth;
+    } else {
+      return height > DeviceThresholds.minTabletHeightLandscape &&
+          width > DeviceThresholds.minTabletWidthLandscape;
+    }
+  }
+
+
 
   @override
   void dispose() {
@@ -93,16 +125,32 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  double ? screenWidth;
-  double ? screenHeight;
+  double? screenWidth;
+  double? screenHeight;
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
 
   @override
   void didChangeDependencies() {
-    keyboardVisibilityManager.dispose();
+    //keyboardVisibilityManager.dispose();
     super.didChangeDependencies();
-    screenWidth = MediaQuery.of(context).size.width;
-    screenHeight = MediaQuery.of(context).size.height;
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
     widgetHeight = MediaQuery.of(context).size.height * 0.275;
+  }
+
+  @override
+  void didChangeMetrics() {
+    if(mounted){
+      setState(() {
+        _initializeDeviceType();
+      });
+    }
   }
 
   Future<void> fetchProducts() async {
@@ -240,7 +288,12 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
       body: Stack(
         children: [
           Container(
-            padding: EdgeInsets.only(top: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.width * 0.02),
+            padding: !isTablet ? EdgeInsets.only(
+                top: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.width * 0.02) :
+            orientation == Orientation.portrait ? EdgeInsets.only(
+                top: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.width * 0.02) :
+            EdgeInsets.only(
+                top: MediaQuery.of(context).size.height * 0.02, bottom: MediaQuery.of(context).size.height * 0.02),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -269,9 +322,10 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                               '${widget.selectedCategory}',
                               style: TextStyle(
                                 color: AppColors.primaryColor,
-                                fontSize: screenWidth! < 370.00
+                                fontSize: !isTablet ? screenWidth! < 370.00
                                     ? MediaQuery.of(context).size.width * 0.078
-                                    : MediaQuery.of(context).size.width * 0.082,
+                                    : MediaQuery.of(context).size.width * 0.082 : orientation == Orientation.portrait ?
+                                MediaQuery.of(context).size.width * 0.074 : MediaQuery.of(context).size.height * 0.074,
                                 fontWeight: FontWeight.bold,
                               ),)
                           ]))
@@ -280,10 +334,14 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                 ),
                 Expanded(
                   child: ListView.builder(
-                      padding: EdgeInsets.only(
+                      padding: orientation == Orientation.portrait ? EdgeInsets.only(
                         bottom: MediaQuery.of(context).size.width * 0.01,
                         left: MediaQuery.of(context).size.width * 0.02,
                         right: MediaQuery.of(context).size.width * 0.02
+                      ) : EdgeInsets.only(
+                        bottom: MediaQuery.of(context).size.height * 0.01,
+                        left: MediaQuery.of(context).size.height * 0.02,
+                        right: MediaQuery.of(context).size.height * 0.02
                       ),
                       physics: const BouncingScrollPhysics(),
                       itemCount: products_global.length,
@@ -327,7 +385,12 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                           child: Column(
                             children: [
                               ListTile(
-                                contentPadding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.width * 0.0075, horizontal: MediaQuery.of(context).size.width * 0.0247),
+                                contentPadding: orientation == Orientation.portrait ? EdgeInsets.symmetric(
+                                    vertical: MediaQuery.of(context).size.width * 0.0075,
+                                    horizontal: MediaQuery.of(context).size.width * 0.0247) :
+                                EdgeInsets.symmetric(
+                                    vertical: MediaQuery.of(context).size.height * 0.0075,
+                                    horizontal: MediaQuery.of(context).size.height * 0.0247),
                                 title: Row(
                                   children: [
                                     Column(
@@ -339,21 +402,25 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                           style: TextStyle(
                                             color: AppColors.primaryColor,
                                             fontWeight: FontWeight.bold,
-                                            fontSize: MediaQuery.of(context).size.width * 0.04,
+                                            fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                            MediaQuery.of(context).size.height * 0.045,
                                           ),
                                         ),
                                         Row(
                                           children: [
                                             Text(
                                               "Cant.: ",
-                                              style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5), fontSize: MediaQuery.of(context).size.width * 0.035),
+                                              style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5),
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                MediaQuery.of(context).size.height * 0.04,),
                                             ),
                                             Text(
                                               products_global[index]['cant_cart']['cantidad'] == null ? 'Agotado' : products_global[index]['cant_cart']['cantidad'] == 0 ? 'Agotado' : '${products_global[index]['cant_cart']['cantidad']}',
                                               style: TextStyle(
                                                   color: AppColors.primaryColor,
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: MediaQuery.of(context).size.width * 0.035
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                MediaQuery.of(context).size.height * 0.04,
                                               ),
                                             ),
                                           ],
@@ -362,7 +429,9 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                           children: [
                                             Text(
                                               "Precio: ",
-                                              style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5), fontSize: MediaQuery.of(context).size.width * 0.035),
+                                              style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5),
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                MediaQuery.of(context).size.height * 0.04,),
                                             ),
                                             Container(
                                               padding: const EdgeInsets.only(right: 10),
@@ -371,7 +440,8 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                                 style: TextStyle(
                                                   color: AppColors.primaryColor,
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: MediaQuery.of(context).size.width * 0.035,
+                                                    fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                    MediaQuery.of(context).size.height * 0.04,
                                                 ),
                                               ),
                                             ),
@@ -383,7 +453,11 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                     AnimatedContainer(
                                         alignment: Alignment.bottomRight,
                                         duration: const Duration(milliseconds: 225),
-                                        width: tapedIndices.contains(index) ? MediaQuery.of(context).size.width * 0.3 : MediaQuery.of(context).size.width * 0.13,
+                                        width: tapedIndices.contains(index) ? !isTablet ? MediaQuery.of(context).size.width * 0.3 :
+                                        orientation == Orientation.portrait ?MediaQuery.of(context).size.width * 0.26 : MediaQuery.of(context).size.height * 0.32 :
+                                        !isTablet ? MediaQuery.of(context).size.width * 0.13 :
+                                        orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.105 : MediaQuery.of(context).size.height * 0.125,
+                                        /*width: tapedIndices.contains(index) ? MediaQuery.of(context).size.width * 0.3 : MediaQuery.of(context).size.width * 0.13,*/
                                         decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(10),
                                           color: AppColors.primaryColor,
@@ -414,7 +488,8 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                                     child: Icon(
                                                       CupertinoIcons.minus,
                                                       color: AppColors.whiteColor,
-                                                      size: MediaQuery.of(context).size.width * 0.07,
+                                                      size: !isTablet ? MediaQuery.of(context).size.width * 0.07 : orientation == Orientation.portrait ?
+                                                      MediaQuery.of(context).size.width * 0.07 :  MediaQuery.of(context).size.height * 0.07,
                                                     ),
                                                   ),),
                                                 builder: (context, minusMove){
@@ -479,7 +554,8 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                               child: Icon(
                                                 CupertinoIcons.add,
                                                 color: AppColors.whiteColor,
-                                                size: MediaQuery.of(context).size.width * 0.07,
+                                                size: !isTablet ? MediaQuery.of(context).size.width * 0.07 : orientation == Orientation.portrait ?
+                                                MediaQuery.of(context).size.width * 0.07 :  MediaQuery.of(context).size.height * 0.07,
                                               ),
                                             ),
                                           ],

@@ -38,15 +38,55 @@ class BarcodeScannerService {
   Function(String)? onBarcodeScanned;
   BuildContext? _context;
   bool isReconnecting = false;
+  FocusNode? _focusNode;
 
   final reconnectionController = StreamController<void>.broadcast();
   _ActivityLifecycleObserver? _lifecycleObserver;
 
+  //
+  FocusNode get focusNode2 {
+    if (_focusNode == null || !_focusNode!.hasListeners) {
+      _focusNode?.dispose(); // Dispose el anterior si existe
+      _focusNode = FocusNode();
+    }
+    return _focusNode!;
+  }
+
+
+  //
+
   void initialize(BuildContext context, Function(String) onScanned) {
+
+    dispose();
+
     _context = context;
     onBarcodeScanned = onScanned;
+    _focusNode = FocusNode();
 
     if (Platform.isAndroid) {
+      _lifecycleObserver = _ActivityLifecycleObserver(
+        onResume: () {
+          Future.delayed(Duration(milliseconds: 500), () {
+            if (_focusNode != null &&
+                !_focusNode!.hasFocus &&
+                _focusNode!.hasListeners &&
+                _focusNode!.canRequestFocus) {
+              _focusNode!.requestFocus();
+            }
+          });
+        },
+        onPause: () {
+          if (_focusNode != null &&
+              _focusNode!.hasListeners &&
+              _focusNode!.hasFocus) {
+            _focusNode!.canRequestFocus;
+          }
+        },
+      );
+      WidgetsBinding.instance.addObserver(_lifecycleObserver!);
+    }
+
+    /*if (Platform.isAndroid) {
       // Escuchar eventos de lifecycle de la app
       _lifecycleObserver  = _ActivityLifecycleObserver(
           onResume: () {
@@ -71,18 +111,22 @@ class BarcodeScannerService {
         }
         return null;
       });
-    }
+    }*/
   }
 
   void dispose() {
     if (_lifecycleObserver != null) {
       WidgetsBinding.instance.removeObserver(_lifecycleObserver!);
-    }    reconnectionController.close();
-    reconnectionController.close();
-    if (focusNode.hasPrimaryFocus) {
-      focusNode.unfocus();
+      _lifecycleObserver = null;
     }
-    focusNode.dispose();
+    reconnectionController.close();
+    if (_focusNode != null) {
+      if (_focusNode!.hasPrimaryFocus) {
+        _focusNode!.unfocus();
+      }
+      _focusNode!.dispose();
+      _focusNode = null;
+    }
     bufferClearTimer?.cancel();
     onBarcodeScanned = null;
     _context = null;
@@ -127,7 +171,7 @@ class BarcodeScannerService {
 
   Widget wrapWithKeyboardListener(Widget child) {
     return RawKeyboardListener(
-      focusNode: focusNode,
+      focusNode: focusNode2,
       onKey: handleKeyEvent,
       child: child,
     );

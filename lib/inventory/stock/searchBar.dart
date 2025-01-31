@@ -7,9 +7,11 @@ import 'package:inventory_app/inventory/stock/products/utils/productOptions.dart
 import 'package:inventory_app/inventory/stock/products/views/productDetails.dart';
 import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
 import 'package:provider/provider.dart';
+import '../../deviceThresholds.dart';
 import '../../helpers/utils/showToast.dart';
 import '../../helpers/utils/toastWidget.dart';
 import '../admin.dart';
+import '../deviceManager.dart';
 import '../kboardVisibilityManager.dart';
 import '../sellpoint/cart/services/cartService.dart';
 import '../sellpoint/cart/services/searchService.dart';
@@ -30,7 +32,7 @@ class Seeker extends StatefulWidget {
   State<Seeker> createState() => _SeekerState();
 }
 
-class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
+class _SeekerState extends State<Seeker> with TickerProviderStateMixin, WidgetsBindingObserver {
   ///comnfiguracion alan
   GlobalKey<ProductsState> productsKey = GlobalKey<ProductsState>();
   bool isLoading = false;
@@ -121,7 +123,64 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       focusNode.requestFocus();
     });
+    WidgetsBinding.instance.addObserver(this);
+    deviceInfo = DeviceInfo();
     // TODO: implement initState
+  }
+
+  /*void _initializeDeviceType() {
+    // Obtener el tamaño de la pantalla desde el binding
+    final window = WidgetsBinding.instance.window;
+    // Obtener el factor de pixel de la pantalla
+    final devicePixelRatio = window.devicePixelRatio;
+    // Obtener el tamaño en pixels lógicos
+    final physicalSize = window.physicalSize;
+    // Convertir a tamaño lógico
+    screenWidth = physicalSize.width / devicePixelRatio;
+    screenHeight = physicalSize.height / devicePixelRatio;
+    // Determinar la orientación
+    orientation = screenWidth! > screenHeight! ? Orientation.landscape : Orientation.portrait;
+    // Verificar si es tablet
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
+  }
+
+  bool isTabletDevice(double width, double height, Orientation deviceOrientation) {
+    if (deviceOrientation == Orientation.portrait) {
+      return height > DeviceThresholds.minTabletHeightPortrait &&
+          width > DeviceThresholds.minTabletWidth;
+    } else {
+      return height > DeviceThresholds.minTabletHeightLandscape &&
+          width > DeviceThresholds.minTabletWidthLandscape;
+    }
+  }*/
+
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
+  double? screenHeight;
+
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    /*setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });*/
+  }
+
+  late DeviceInfo deviceInfo;
+
+  @override
+  void didChangeMetrics() {
+    if (mounted) {
+      setState(() {
+        deviceInfo = DeviceInfo(); // Recalcular cuando cambian las métricas
+      });
+    }
   }
 
   @override
@@ -208,12 +267,6 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
     }
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    screenWidth = MediaQuery.of(context).size.width;
-  }
-
   Future<void> fetchProducts() async {
     setState(() {
       isLoading = true;
@@ -274,7 +327,7 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
       if (availableSpaceBelow >= widgetHeight) {
         topPosition = position.dy;
       } else {
-        topPosition = screenHeight - widgetHeight - MediaQuery.of(context).size.height*0.03;
+        topPosition = screenHeight - widgetHeight - MediaQuery.of(context).size.height * 0.03;
       }
 
       overlayEntry = OverlayEntry(
@@ -349,9 +402,8 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
       body: Stack(
         children: [
           Container(
-            color: AppColors.whiteColor,
-            padding: EdgeInsets.only(
-                top: MediaQuery.of(context).size.height * 0.047),
+            color: Colors.transparent,
+            padding: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.047),
             child: Column(
               children: [
                 Row(
@@ -363,7 +415,8 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                       },
                       icon: Icon(
                         CupertinoIcons.back,
-                        size: MediaQuery.of(context).size.width * 0.08,
+                        size: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.08 : deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.07 :
+                        MediaQuery.of(context).size.height * 0.07,
                         color: AppColors.primaryColor,
                       ),
                     ),
@@ -371,9 +424,10 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                       'Buscar',
                       style: TextStyle(
                         color: AppColors.primaryColor,
-                        fontSize: screenWidth! < 370.00
+                        fontSize: !deviceInfo.isTablet ? screenWidth! < 370.00
                             ? MediaQuery.of(context).size.width * 0.078
-                            : MediaQuery.of(context).size.width * 0.082,
+                            : MediaQuery.of(context).size.width * 0.082 : deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.07 :
+                        MediaQuery.of(context).size.height * 0.07,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -393,7 +447,6 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                           ),
                           child: Container(
                             color: Colors.transparent,
-                            height: MediaQuery.of(context).size.width * 0.105,//37
                             child: TextFormField(
                               autofocus: true,
                               controller: searchController,
@@ -424,7 +477,8 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                   },
                                   icon: Icon(
                                     CupertinoIcons.clear,
-                                    size: MediaQuery.of(context).size.width * 0.05,
+                                    size: !deviceInfo.isTablet ?  MediaQuery.of(context).size.width * 0.05 :
+                                    deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 :  MediaQuery.of(context).size.height * 0.05,
                                     color: AppColors.primaryColor,
                                   ),
                                 ) : null
@@ -443,7 +497,8 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                 ),
                 Visibility(
                   visible: categories.isNotEmpty ? true : false,
-                  child: Column(
+                  child: Flexible(child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
                         alignment: Alignment.topLeft,
@@ -452,50 +507,40 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                           'Categorias',
                           style: TextStyle(
                             color: AppColors.primaryColor,
-                            fontSize: screenWidth! < 370.00
+                            fontSize: !deviceInfo.isTablet ? screenWidth! < 370.00
                                 ? MediaQuery.of(context).size.width * 0.07
-                                : MediaQuery.of(context).size.width * 0.075,
-                            fontWeight: FontWeight.bold,
+                                : MediaQuery.of(context).size.width * 0.075 : deviceInfo.orientation == Orientation.portrait ?
+                            MediaQuery.of(context).size.width * 0.075
+                                : MediaQuery.of(context).size.height * 0.07,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                      Container(
-                        padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.01),
-                        height: MediaQuery.of(context).size.height * 0.25,
+                      Flexible(
                         child: PageView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: (categories.length / itemsPerPage).ceil(),
                             itemBuilder: (context, pageIndex) {
                               int startIndex = pageIndex * itemsPerPage;
                               int endIndex = startIndex + itemsPerPage - 1;
-                              if (endIndex > categories.length) {
-                                endIndex = categories.length;
-                              }
+                              endIndex = categories.length;
                               var currentPageItems = categories.sublist(startIndex, endIndex);
                               return GridView.builder(
+                                  shrinkWrap: true,
                                   scrollDirection: Axis.horizontal,
                                   padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.04),
                                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                                       crossAxisCount: 1,
-                                      mainAxisExtent: MediaQuery.of(context).size.width * 0.5
+                                      mainAxisExtent: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.5 : deviceInfo.orientation == Orientation.portrait ?
+                                      MediaQuery.of(context).size.width * 0.5 : MediaQuery.of(context).size.width * 0.25
                                   ),
                                   itemCount: currentPageItems.length,
                                   itemBuilder: (context, index) {
                                     var item = currentPageItems[index];
-                                    return InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          selectedCategoryId = categories[index]['id'];
-                                          Navigator.of(context).push(
-                                            CupertinoPageRoute(
-                                              builder: (context) => Products(selectedCategory: categories[index]['nombre'].toString(), onBack: _clearSelectedCategory, selectedCategoryId: selectedCategoryId, onShowBlur: widget.onShowBlur,listenerblurr: widget.listenerblurr),
-                                            ),
-                                          );
-                                        });
-                                      },
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                    return Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Container(
                                               padding: const EdgeInsets.all(1),
@@ -511,39 +556,60 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                                   )
                                                 ],
                                               ),
-                                              height: MediaQuery.of(context).size.width * 0.35,
-                                              width: MediaQuery.of(context).size.width * 0.4,
-                                              child: Stack(
-                                                alignment: Alignment.center,
-                                                children: [
-                                                  ClipRRect(
-                                                    borderRadius: BorderRadius.circular(10),
-                                                    child: Image.network(
-                                                      categories[index]['foto'],
-                                                      fit: BoxFit.contain,
-                                                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                                                        if (loadingProgress == null) {
-                                                          return child;
-                                                        } else {
-                                                          return Center(
-                                                            child: CircularProgressIndicator(
-                                                              value: loadingProgress.expectedTotalBytes != null
-                                                                  ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
-                                                                  : null,
-                                                            ),
-                                                          );
-                                                        }
-                                                      },
-                                                      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                                                        return const Text('Error al cargar la imagen');
-                                                      },
-                                                    ),
+                                              height: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.35 :
+                                              deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.25 : MediaQuery.of(context).size.height * 0.25,
+                                              width: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.4 :
+                                              deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.35 : MediaQuery.of(context).size.height * 0.35,
+                                              child: InkWell(
+                                                onTap: () {
+                                                  setState(() {
+                                                    selectedCategoryId = categories[index]['id'];
+                                                    Navigator.of(context).push(
+                                                      CupertinoPageRoute(
+                                                        builder: (context) => Products(selectedCategory: categories[index]['nombre'].toString(), onBack: _clearSelectedCategory, selectedCategoryId: selectedCategoryId, onShowBlur: widget.onShowBlur,listenerblurr: widget.listenerblurr),
+                                                      ),
+                                                    );
+                                                  });
+                                                },
+                                                child: ClipRRect(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  child: Image.network(
+                                                    categories[index]['foto'],
+                                                    fit: BoxFit.contain,
+                                                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                                      if (loadingProgress == null) {
+                                                        return child;
+                                                      } else {
+                                                        return Center(
+                                                          child: CircularProgressIndicator(
+                                                            value: loadingProgress.expectedTotalBytes != null
+                                                                ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                                                : null,
+                                                          ),
+                                                        );
+                                                      }
+                                                    },
+                                                    errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                                      return Container(
+                                                          color: Colors.transparent,
+                                                          child: Column(
+                                                            mainAxisAlignment: MainAxisAlignment.center, // Centra los elementos verticalmente
+                                                            crossAxisAlignment: CrossAxisAlignment.center,
+                                                            mainAxisSize: MainAxisSize.min,
+                                                            children: [
+                                                              Flexible(
+                                                                child: Image.asset('assets/imgLog/notFound.jpg',
+                                                                    fit: BoxFit.fill),),
+                                                            ],
+                                                          )
+                                                      );
+                                                    },
                                                   ),
-                                                ],
+                                                ),
                                               )
                                           ),
                                           const SizedBox(height: 8),
-                                          Expanded(
+                                          Flexible(
                                             child: Text(
                                                 "${categories[index]['nombre']}",
                                                 style: TextStyle(
@@ -553,15 +619,14 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                             ),
                                           )
                                         ],
-                                      ),
-                                    );
+                                      );
                                   }
                               );
                             }
                         ),
                       ),
                     ],
-                  ),
+                  ),),
                 ),
                 Visibility(
                   visible: productos.isNotEmpty ? true : false,
@@ -575,10 +640,12 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                             'Productos',
                             style: TextStyle(
                               color: AppColors.primaryColor,
-                              fontSize: screenWidth! < 370.00
+                              fontSize: !deviceInfo.isTablet ? screenWidth! < 370.00
                                   ? MediaQuery.of(context).size.width * 0.07
-                                  : MediaQuery.of(context).size.width * 0.075,
-                              fontWeight: FontWeight.bold,
+                                  : MediaQuery.of(context).size.width * 0.075 : deviceInfo.orientation == Orientation.portrait ?
+                              MediaQuery.of(context).size.width * 0.075
+                              : MediaQuery.of(context).size.height * 0.07,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -638,21 +705,26 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                                 style: TextStyle(
                                                   color: AppColors.primaryColor,
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: MediaQuery.of(context).size.width * 0.04,
+                                                  fontSize: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.04 : deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                  MediaQuery.of(context).size.height * 0.04,
                                                 ),
                                               ),
                                               Row(
                                                 children: [
                                                   Text(
                                                     "Cant.: ",
-                                                    style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5), fontSize: MediaQuery.of(context).size.width * 0.035),
+                                                    style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5),
+                                                      fontSize: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.035 : deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.035 :
+                                                      MediaQuery.of(context).size.height * 0.035,
+                                                    ),
                                                   ),
                                                   Text(
                                                     productos[index]['stock']['cantidad'] == null ? 'Agotado' : productos[index]['stock']['cantidad'] == 0 ? 'Agotado' : '${productos[index]['stock']['cantidad']}',
                                                     style: TextStyle(
                                                         color: AppColors.primaryColor,
                                                         fontWeight: FontWeight.bold,
-                                                        fontSize: MediaQuery.of(context).size.width * 0.035
+                                                      fontSize: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.035 : deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.035 :
+                                                      MediaQuery.of(context).size.height * 0.035,
                                                     ),
                                                   ),
                                                 ],
@@ -661,7 +733,9 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                                 children: [
                                                   Text(
                                                     "Precio: ",
-                                                    style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5), fontSize: MediaQuery.of(context).size.width * 0.035),
+                                                    style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5),
+                                                      fontSize: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.035 :
+                                                    MediaQuery.of(context).size.height * 0.035,),
                                                   ),
                                                   Container(
                                                     padding: const EdgeInsets.only(right: 10),
@@ -670,7 +744,8 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                                       style: TextStyle(
                                                         color: AppColors.primaryColor,
                                                         fontWeight: FontWeight.bold,
-                                                        fontSize: MediaQuery.of(context).size.width * 0.035,
+                                                        fontSize: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.035 :
+                                                        MediaQuery.of(context).size.height * 0.035,
                                                       ),
                                                     ),
                                                   ),
@@ -682,7 +757,10 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                           AnimatedContainer(
                                               alignment: Alignment.bottomRight,
                                               duration: const Duration(milliseconds: 225),
-                                              width: tapedIndices.contains(index) ? MediaQuery.of(context).size.width * 0.3 : MediaQuery.of(context).size.width * 0.13,
+                                              width: tapedIndices.contains(index) ? !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.3 :
+                                              orientation == Orientation.portrait ?MediaQuery.of(context).size.width * 0.26 : MediaQuery.of(context).size.height * 0.32 :
+                                              !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.13 :
+                                              orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.105 : MediaQuery.of(context).size.height * 0.125,
                                               decoration: BoxDecoration(
                                                 borderRadius: BorderRadius.circular(10),
                                                 color: AppColors.primaryColor,
@@ -713,7 +791,8 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                                           child: Icon(
                                                             CupertinoIcons.minus,
                                                             color: AppColors.whiteColor,
-                                                            size: MediaQuery.of(context).size.width * 0.07,
+                                                            size: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.07 : orientation == Orientation.portrait ?
+                                                            MediaQuery.of(context).size.width * 0.07 :  MediaQuery.of(context).size.height * 0.07,
                                                           ),
                                                         ),),
                                                       builder: (context, minusMove){
@@ -737,7 +816,8 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                                               '${cantHelper[index]}',
                                                               style: TextStyle(
                                                                   color: AppColors.whiteColor,
-                                                                  fontSize: MediaQuery.of(context).size.width * 0.05,
+                                                                  fontSize: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.05 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 :
+                                                                  MediaQuery.of(context).size.height * 0.05,
                                                                   fontWeight: FontWeight.bold),
                                                             ),
                                                           )),
@@ -780,7 +860,8 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin {
                                                     child: Icon(
                                                       CupertinoIcons.add,
                                                       color: AppColors.whiteColor,
-                                                      size: MediaQuery.of(context).size.width * 0.07,
+                                                      size: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.07 : orientation == Orientation.portrait ?
+                                                      MediaQuery.of(context).size.width * 0.07 :  MediaQuery.of(context).size.height * 0.07,
                                                     ),
                                                   ),
                                                 ],

@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
@@ -18,11 +16,12 @@ import 'package:inventory_app/inventory/stock/products/forms/productForm.dart';
 import 'package:inventory_app/inventory/stock/products/views/products.dart';
 import 'package:inventory_app/inventory/stock/searchBar.dart';
 import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:soundpool/soundpool.dart';
+import '../deviceThresholds.dart';
 import '../helpers/utils/PopUpTabs/closeConfirm.dart';
 import '../navBar.dart';
+import 'deviceManager.dart';
 import 'kboardVisibilityManager.dart';
 import 'listenerPrintService.dart';
 import 'themes/colors.dart';
@@ -36,7 +35,7 @@ class adminInv extends StatefulWidget {
 
 List<Map<String, dynamic>> productsGlobalTemp = [];
 //agregar el tmepo a servicio igual
-class _adminInvState extends State<adminInv> {
+class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
   GlobalKey<ProductsState> productsKey = GlobalKey<ProductsState>();
   PrintService printService = PrintService();
   bool _showBlurr = false;
@@ -114,10 +113,19 @@ class _adminInvState extends State<adminInv> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             duration: const Duration(milliseconds: 700),
-            padding: EdgeInsets.only(
+            padding: !deviceInfo.isTablet ? EdgeInsets.only(
               top: MediaQuery.of(context).size.width * 0.08,
               bottom: MediaQuery.of(context).size.width * 0.08,
               left: MediaQuery.of(context).size.width * 0.02,
+            ) : orientation == Orientation.portrait ? EdgeInsets.only(
+              top: MediaQuery.of(context).size.width * 0.08,
+              bottom: MediaQuery.of(context).size.width * 0.08,
+              left: MediaQuery.of(context).size.width * 0.02,
+            ) :
+            EdgeInsets.only(
+              top: MediaQuery.of(context).size.height * 0.08,
+              bottom: MediaQuery.of(context).size.height * 0.08,
+              left: MediaQuery.of(context).size.height * 0.02,
             ),
             backgroundColor: productFound ? Colors.green : Colors.redAccent,
             content: Text(
@@ -126,7 +134,8 @@ class _adminInvState extends State<adminInv> {
                   : 'Producto agotado',
               style: TextStyle(
                 color: Colors.white,
-                fontSize: MediaQuery.of(context).size.width * 0.045,
+                fontSize: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.045 : orientation == Orientation.portrait ?
+                MediaQuery.of(context).size.width * 0.042 :  MediaQuery.of(context).size.height * 0.042,
               ),
             ),
           ),
@@ -272,6 +281,8 @@ class _adminInvState extends State<adminInv> {
     }
   }
 
+  late DeviceInfo deviceInfo;
+
 
   void _onItemSelected(int option){
     setState(() {
@@ -285,15 +296,90 @@ class _adminInvState extends State<adminInv> {
     });
   }
 
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    screenWidth = MediaQuery.of(context).size.width;
-    screenHeight = MediaQuery.of(context).size.height;
+    // Actualizar los valores usando MediaQuery cuando el contexto está disponible
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
   }
 
 
   @override
+  void didChangeMetrics() {
+    if (mounted) {
+      setState(() {
+        deviceInfo = DeviceInfo(); // Recalcular cuando cambian las métricas
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    keyboardVisibilityManager = KeyboardVisibilityManager();
+    bool isUsingTextField = false;
+
+    // Suscripción al teclado
+    keyboardVisibilityManager.keyboardVisibilitySubscription =
+        keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
+          if (!mounted) return; // Verificar si el widget está montado
+
+          if (visible) {
+            if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
+                FocusManager.instance.primaryFocus?.context?.widget is TextFormField) {
+              isUsingTextField = true;
+              // Verificar si aún tiene listeners
+                scannerService.focusNode.unfocus();
+            }
+          } else {
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted && !isUsingTextField && scannerService.focusNode.hasListeners) {
+                scannerService.focusNode.requestFocus();
+              }
+            });
+          }
+        });
+
+    Future.microtask(() {
+      if (!mounted) return;
+
+      scannerService.initialize(context, handleBarcode);
+
+      // Agregar listener solo si el widget está montado
+      if (mounted) {
+        scannerService.focusNode.addListener(() {
+          if (!isUsingTextField && mounted) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              if (mounted &&
+                  scannerService.focusNode.hasListeners &&
+                  !scannerService.focusNode.hasFocus &&
+                  !keyboardVisibilityManager.keyboardVisibilityController.isVisible) {
+                scannerService.focusNode.requestFocus();
+              }
+            });
+          }
+        });
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && scannerService.focusNode.hasListeners) {
+          scannerService.focusNode.requestFocus();
+        }
+      });
+    });
+
+    WidgetsBinding.instance.addObserver(this);
+    deviceInfo = DeviceInfo();
+  }
+
+
+/*  @override
   void initState() {
     super.initState();
     keyboardVisibilityManager = KeyboardVisibilityManager();
@@ -304,21 +390,8 @@ class _adminInvState extends State<adminInv> {
             if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
                 FocusManager.instance.primaryFocus?.context?.widget is TextFormField) {
               isUsingTextField = true;
-              scannerService.focusNode.unfocus(); // Desenfocar el escáner solo si se está usando un campo de texto.
+              scannerService.focusNode.unfocus();
             }
-          } else {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted && !isUsingTextField) {
-                scannerService.focusNode.requestFocus(); // Volver a enfocar el escáner si no se está usando el teclado.
-              }
-            });
-          }
-        });
-    /*keyboardVisibilityManager.keyboardVisibilitySubscription =
-        keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
-          if (visible) {
-            isUsingTextField = true;
-            scannerService.focusNode.unfocus();
           } else {
             Future.delayed(const Duration(milliseconds: 500), () {
               if (mounted && !isUsingTextField) {
@@ -326,7 +399,7 @@ class _adminInvState extends State<adminInv> {
               }
             });
           }
-        });*/
+        });
     Future.microtask(() {
       if (mounted) {
         scannerService.initialize(context, handleBarcode);
@@ -346,8 +419,9 @@ class _adminInvState extends State<adminInv> {
         });
       }
     });
-  }
-
+    WidgetsBinding.instance.addObserver(this);
+    deviceInfo = DeviceInfo();
+  }*/
 
   void _onCancelConfirm(bool cancelConfirm) {
     setState(() {
@@ -390,6 +464,7 @@ class _adminInvState extends State<adminInv> {
     keyboardVisibilityManager.dispose();
     scannerService.dispose();
     focusNode.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -411,7 +486,7 @@ class _adminInvState extends State<adminInv> {
       Widget _buildBody() {
         switch (_selectedScreen) {
           case 1:
-            return Categories(productsKey: productsKey, onHideBtnsBottom: onHideBtnsBottom, onShowBlur: _onShowBlur, listenerblurr: _listenerblurr);
+            return Categories(productsKey: productsKey, onHideBtnsBottom: onHideBtnsBottom, onShowBlur: _onShowBlur, listenerblurr: _listenerblurr, isTablet: deviceInfo.isTablet);
           case 2:
             return Cart(onHideBtnsBottom: onHideBtnsBottom, printService: printService, onShowBlurr: onShowBlurr);
           default:
@@ -434,7 +509,7 @@ class _adminInvState extends State<adminInv> {
                     currentScreen: currentScreen,
                     onPrintServiceComunication: onPrintServiceComunication,
                     printServiceAfterInitConn: printService,
-                    btChar: printService.characteristic, onLockScreen: onLockScreen),
+                    btChar: printService.characteristic, onLockScreen: onLockScreen, isTablet: isTablet, orientation: orientation),
                 body: Stack(
                     children: [
                       Container(
@@ -462,11 +537,15 @@ class _adminInvState extends State<adminInv> {
                                             : _selectedScreen == 2
                                             ? 'Venta'
                                             : '',
-                                        style: TextStyle(
+                                        style: !deviceInfo.isTablet ? TextStyle(
                                           color: AppColors.primaryColor,
                                           fontSize: screenWidth! < 370.00
                                               ? MediaQuery.of(context).size.width * 0.078
                                               : MediaQuery.of(context).size.width * 0.082,
+                                          fontWeight: FontWeight.bold,
+                                        ) : TextStyle(
+                                          color: AppColors.primaryColor,
+                                          fontSize: deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.06: MediaQuery.of(context).size.height * 0.06,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -492,7 +571,8 @@ class _adminInvState extends State<adminInv> {
                                             icon: Icon(
                                               CupertinoIcons.add_circled_solid,
                                               color: AppColors.primaryColor,
-                                              size: MediaQuery.of(context).size.width * 0.1,
+                                              size: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.1 : deviceInfo.orientation == Orientation.portrait ?
+                                              MediaQuery.of(context).size.width * 0.065 : MediaQuery.of(context).size.height * 0.065,
                                             ),
                                           )),
                                       Visibility(
@@ -509,7 +589,10 @@ class _adminInvState extends State<adminInv> {
                                           icon: Icon(
                                             CupertinoIcons.tickets,
                                             color: AppColors.primaryColor,
-                                            size: MediaQuery.of(context).size.width * 0.1,
+                                            size: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.1 : deviceInfo.orientation == Orientation.portrait ?
+                                            MediaQuery.of(context).size.width * 0.065 : MediaQuery.of(context).size.height * 0.065,
+
+                                        //MediaQuery.of(context).size.width * 0.1,
                                           ),
                                         ),),
                                       Builder(builder: (BuildContext context) {
@@ -520,7 +603,8 @@ class _adminInvState extends State<adminInv> {
                                           icon: SvgPicture.asset(
                                             'assets/imgLog/navBar.svg',
                                             colorFilter: const ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn),
-                                            width: MediaQuery.of(context).size.width * 0.105,
+                                            width: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.105 : deviceInfo.orientation == Orientation.portrait ?
+                                            MediaQuery.of(context).size.width * 0.06 : MediaQuery.of(context).size.height * 0.065,
                                           ),
                                         );
                                       }),
@@ -619,10 +703,10 @@ class _adminInvState extends State<adminInv> {
                               visible: !_hideBtnsBottom,
                               child: Container(
                                 margin: EdgeInsets.only(bottom: screenWidth! < 391
-                                    ? MediaQuery.of(context).size.width * 0.055
+                                    ? MediaQuery.of(context).size.width * 0.05
                                     : MediaQuery.of(context).size.width * 0.02),
                                 padding: EdgeInsets.only(top: screenWidth! < 391
-                                    ? MediaQuery.of(context).size.width * 0.035
+                                    ? MediaQuery.of(context).size.width * 0.03
                                     : MediaQuery.of(context).size.width * 0.02),
                                 child: Row(
                                   children: [
@@ -647,15 +731,15 @@ class _adminInvState extends State<adminInv> {
                                               colorFilter: _selectedScreen == 1
                                                   ? const ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn)
                                                   : ColorFilter.mode(AppColors.primaryColor.withOpacity(0.2), BlendMode.srcIn),
-                                              width: MediaQuery.of(context).size.width * 0.12,
+                                              width: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.1 : deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.06 : MediaQuery.of(context).size.height * 0.06,
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
                                     Container(
-                                      width: MediaQuery.of(context).size.width * 0.005,
-                                      height: MediaQuery.of(context).size.width * 0.15,
+                                      width: !deviceInfo.isTablet ?  MediaQuery.of(context).size.width * 0.005 : deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.0025 : MediaQuery.of(context).size.height * 0.0025,
+                                      height: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.12 : deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.07 : MediaQuery.of(context).size.height * 0.07,
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(1),
                                         color: AppColors.primaryColor.withOpacity(0.2),
@@ -684,7 +768,7 @@ class _adminInvState extends State<adminInv> {
                                               colorFilter: _selectedScreen == 2
                                                   ? const ColorFilter.mode(AppColors.primaryColor, BlendMode.srcIn)
                                                   : ColorFilter.mode(AppColors.primaryColor.withOpacity(0.2), BlendMode.srcIn),
-                                              width: MediaQuery.of(context).size.width * 0.12,
+                                              width: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.1: deviceInfo.orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.06 : MediaQuery.of(context).size.height * 0.06,
                                             ),
                                           ),
                                         ),
@@ -726,7 +810,8 @@ class _adminInvState extends State<adminInv> {
                                             style: TextStyle(
                                               color: AppColors.primaryColor,
                                               fontWeight: FontWeight.w500,
-                                              fontSize: MediaQuery.of(context).size.width * 0.05,
+                                              fontSize: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.05 : deviceInfo.orientation == Orientation.portrait ?
+                                              MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
                                             ),),
                                           const SizedBox(height: 20,),
                                           const CircularProgressIndicator(

@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/utils/ticketOptions.dart';
+import '../../../../deviceThresholds.dart';
 import '../../../kboardVisibilityManager.dart';
 import '../../../print/printConnections.dart';
 import '../../../themes/colors.dart';
@@ -17,8 +18,9 @@ class Ticketslist extends StatefulWidget {
   final ListenerOnDateChanged listenerOnDateChanged;
   final String dateController;
   final void Function(String) onDateChanged;
+  final bool isTablet;
 
-  const Ticketslist({super.key, required this.onShowBlur, required this.onOptnSize, required this.listenerremoverOL, required this.printService, required this.listenerOnDateChanged, required this.dateController, required this.onDateChanged});
+  const Ticketslist({super.key, required this.onShowBlur, required this.onOptnSize, required this.listenerremoverOL, required this.printService, required this.listenerOnDateChanged, required this.dateController, required this.onDateChanged, required this.isTablet});
 
   @override
   State<Ticketslist> createState() => _TicketslistState();
@@ -69,11 +71,35 @@ class _TicketslistState extends State<Ticketslist> {
     return groupedTickets;
   }
 
+  double ? screenWidth;
+  double ? screenHeight;
+  Orientation orientation = Orientation.portrait;
+  bool isTablet = false;
+
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
     super.didChangeDependencies();
-    keyboardVisibilityManager.dispose();
+    //keyboardVisibilityManager.dispose();
+    // Actualizar los valores usando MediaQuery cuando el contexto está disponible
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
+
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
+  }
+
+  bool isTabletDevice(double width, double height, Orientation deviceOrientation) {
+    if (deviceOrientation == Orientation.portrait) {
+      return height > DeviceThresholds.minTabletHeightPortrait &&
+          width > DeviceThresholds.minTabletWidth;
+    } else {
+      return height > DeviceThresholds.minTabletHeightLandscape &&
+          width > DeviceThresholds.minTabletWidthLandscape;
+    }
   }
 
   @override
@@ -231,7 +257,13 @@ class _TicketslistState extends State<Ticketslist> {
               itemBuilder: (context, index) {
                 return Container(
                     key: ticketKeys[index],
-                    margin: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.03, right: MediaQuery.of(context).size.width * 0.03, bottom: MediaQuery.of(context).size.width * 0.03),
+                    margin: orientation == Orientation.portrait ?
+                    EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.03,
+                        right: MediaQuery.of(context).size.width * 0.03,
+                        bottom: MediaQuery.of(context).size.width * 0.03) :
+                    EdgeInsets.only(left: MediaQuery.of(context).size.height * 0.03,
+                        right: MediaQuery.of(context).size.height * 0.03,
+                        bottom: MediaQuery.of(context).size.height * 0.03) ,
                     decoration: BoxDecoration(
                       color: AppColors.bgColor,
                       borderRadius: BorderRadius.circular(10),
@@ -258,11 +290,17 @@ class _TicketslistState extends State<Ticketslist> {
                           collapsedBackgroundColor: Colors.transparent,
                           textColor: AppColors.bgColor,
                           collapsedTextColor: AppColors.primaryColor,
-                          tilePadding: EdgeInsets.only(
+                          tilePadding: orientation == Orientation.portrait ?
+                          EdgeInsets.only(
                               left: MediaQuery.of(context).size.width * 0.04,
                               right: MediaQuery.of(context).size.width * 0.02,
                               top: MediaQuery.of(context).size.width * 0.01,
                               bottom: MediaQuery.of(context).size.width * 0.015
+                          ) : EdgeInsets.only(
+                              left: MediaQuery.of(context).size.height * 0.04,
+                              right: MediaQuery.of(context).size.height * 0.02,
+                              top: MediaQuery.of(context).size.height * 0.01,
+                              bottom: MediaQuery.of(context).size.height * 0.015
                           ),
                           initiallyExpanded: false,
                           collapsedShape: RoundedRectangleBorder(
@@ -280,7 +318,8 @@ class _TicketslistState extends State<Ticketslist> {
                             'Ticket #${tickets[index]['id']}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: MediaQuery.of(context).size.width * 0.05,
+                              fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.05 : orientation == Orientation.portrait ?
+                              MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
                             ),
                           ),
                           subtitle: Column(
@@ -291,14 +330,16 @@ class _TicketslistState extends State<Ticketslist> {
                                   Text(
                                     'Fecha: ',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.width * 0.04,
+                                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ?
+                                      MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
                                     ),
                                   ),
                                   Text(
                                     '${tickets[index]['fecha']}',
                                     style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.width * 0.04),
+                                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ?
+                                      MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -307,14 +348,16 @@ class _TicketslistState extends State<Ticketslist> {
                                   Text(
                                     'Tipo de pago: ',
                                     style: TextStyle(
-                                      fontSize: MediaQuery.of(context).size.width * 0.04,
+                                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ?
+                                      MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
                                     ),
                                   ),
                                   Text(
                                     '${tickets[index]['tipoVenta']}',
                                   style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.width * 0.04),
+                                    fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ?
+                                    MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
+                                  ),
                                   ),
                                 ],
                               ),
@@ -323,14 +366,16 @@ class _TicketslistState extends State<Ticketslist> {
                                   Text(
                                     'Total: ',
                                     style: TextStyle(
-                                        fontSize: MediaQuery.of(context).size.width * 0.04
+                                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ?
+                                      MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
                                     ),
                                   ),
                                   Text(
                                     '\$${tickets[index]['total']}',
                                     style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.width * 0.04),
+                                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ?
+                                      MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -350,7 +395,8 @@ class _TicketslistState extends State<Ticketslist> {
                                 children: tickets[index]['detalles'].map<Widget>((detalle) {
                                   return ListTile(
                                     contentPadding: EdgeInsets.symmetric(
-                                        horizontal: MediaQuery.of(context).size.width * 0.06),
+                                         horizontal: !isTablet ? MediaQuery.of(context).size.width * 0.06 : orientation == Orientation.portrait ?
+                                         MediaQuery.of(context).size.width * 0.06 : MediaQuery.of(context).size.height * 0.06),
                                     title: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
@@ -359,7 +405,8 @@ class _TicketslistState extends State<Ticketslist> {
                                           style: TextStyle(
                                             color: AppColors.primaryColor,
                                             fontWeight: FontWeight.bold,
-                                            fontSize: MediaQuery.of(context).size.width * 0.04,
+                                            fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ?
+                                            MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
                                           ),
                                         ),
                                         Row(
@@ -368,14 +415,16 @@ class _TicketslistState extends State<Ticketslist> {
                                               "Cant.: ",
                                               style: TextStyle(
                                                   color: AppColors.primaryColor,
-                                                  fontSize: MediaQuery.of(context).size.width * 0.035),
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                                MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,),
                                             ),
                                             Text(
                                               '${detalle['cantidad']} pzs',
                                               style: TextStyle(
                                                   color: AppColors.primaryColor,
                                                   fontWeight: FontWeight.bold,
-                                                  fontSize: MediaQuery.of(context).size.width * 0.035),
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                                MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035),
                                             ),
                                           ],
                                         ),
@@ -385,14 +434,16 @@ class _TicketslistState extends State<Ticketslist> {
                                               "Precio unitario: ",
                                               style: TextStyle(
                                                   color: AppColors.primaryColor,
-                                                  fontSize: MediaQuery.of(context).size.width * 0.035),
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                                MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,),
                                             ),
                                             Text(
                                               '\$${detalle['precio']}',
                                               style: TextStyle(
                                                 color: AppColors.primaryColor,
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: MediaQuery.of(context).size.width * 0.035,
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                                MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,
                                               ),
                                             ),
                                           ],
@@ -403,14 +454,16 @@ class _TicketslistState extends State<Ticketslist> {
                                               "Total: ",
                                               style: TextStyle(
                                                   color: AppColors.primaryColor,
-                                                  fontSize: MediaQuery.of(context).size.width * 0.035),
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                                MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,),
                                             ),
                                             Text(
                                               '\$${detalle['cantidad'] * double.parse(detalle['precio'])}',
                                               style: TextStyle(
                                                 color: AppColors.primaryColor,
                                                 fontWeight: FontWeight.bold,
-                                                fontSize: MediaQuery.of(context).size.width * 0.035,
+                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                                MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,
                                               ),
                                             ),
                                           ],
@@ -431,7 +484,8 @@ class _TicketslistState extends State<Ticketslist> {
                 textAlign: TextAlign.center,
                 'No hay tickets correspondientes a la fecha seleccionada',
                 style: TextStyle(
-                    fontSize: MediaQuery.of(context).size.width * 0.045,
+                    fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.045 : orientation == Orientation.portrait ?
+                    MediaQuery.of(context).size.width * 0.045 : MediaQuery.of(context).size.height * 0.045,
                     color: AppColors.primaryColor
                 ),
               ),

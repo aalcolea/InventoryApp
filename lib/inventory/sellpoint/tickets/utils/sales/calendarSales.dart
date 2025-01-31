@@ -2,12 +2,14 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_calendar/calendar.dart';
+import '../../../../../deviceThresholds.dart';
 import '../../../../../helpers/themes/colors.dart';
 
 class SalesCalendar extends StatefulWidget {
+  final bool isTablet;
   final String dateInit;
   final void Function(String, bool) onDayToAppointFormSelected;
-  SalesCalendar({Key? key, required this.onDayToAppointFormSelected, required this.dateInit}) : super(key: key);
+  SalesCalendar({Key? key, required this.onDayToAppointFormSelected, required this.dateInit, required this.isTablet}) : super(key: key);
 
   @override
   State<SalesCalendar> createState() => _SalesCalendarState();
@@ -55,9 +57,67 @@ class _SalesCalendarState extends State<SalesCalendar> {
   DateTime now = DateTime.now();
   late DateTime selectedDate;
 
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
+  double? screenWidth;
+  double? screenHeight;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Actualizar los valores usando MediaQuery cuando el contexto está disponible
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
+
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
+  }
+
+  bool isTabletDevice(double width, double height, Orientation deviceOrientation) {
+    if (deviceOrientation == Orientation.portrait) {
+      return height > DeviceThresholds.minTabletHeightPortrait &&
+          width > DeviceThresholds.minTabletWidth;
+    } else {
+      return height > DeviceThresholds.minTabletHeightLandscape &&
+          width > DeviceThresholds.minTabletWidthLandscape;
+    }
+  }
+
+  @override
+  void didChangeMetrics() {
+    if(mounted){
+      setState(() {
+        _initializeDeviceType();
+      });
+    }
+  }
+
+  void _initializeDeviceType() {
+    // Obtener el tamaño de la pantalla desde el binding
+    final window = WidgetsBinding.instance.window;
+    // Obtener el factor de pixel de la pantalla
+    final devicePixelRatio = window.devicePixelRatio;
+    // Obtener el tamaño en pixels lógicos
+    final physicalSize = window.physicalSize;
+    // Convertir a tamaño lógico
+    screenWidth = physicalSize.width / devicePixelRatio;
+    screenHeight = physicalSize.height / devicePixelRatio;
+    // Determinar la orientación
+    orientation = screenWidth! > screenHeight! ? Orientation.landscape : Orientation.portrait;
+    // Verificar si es tablet
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
+  }
+
+
   @override
   void initState() {
     super.initState();
+    isTablet = widget.isTablet;
     saleDateController.text = widget.dateInit;
     selectedDate = DateFormat('yyyy-MM-dd').parse(widget.dateInit);
     initMonth = now.month;
@@ -88,13 +148,12 @@ class _SalesCalendarState extends State<SalesCalendar> {
                 Expanded(
                     child: Container(
                       margin: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.width  * 0.02,
+                        top: !isTablet? MediaQuery.of(context).size.width  * 0.02 : orientation == Orientation.portrait ?
+                        MediaQuery.of(context).size.width  * 0.02 : MediaQuery.of(context).size.height  * 0.02,
                       ),
-                      padding: EdgeInsets.only(
-                        top:  MediaQuery.of(context).size.width * 0.02,
-                        bottom:  MediaQuery.of(context).size.width * 0.02,
-                        left:  MediaQuery.of(context).size.width * 0.02,
-                        right: MediaQuery.of(context).size.width * 0.02,),
+                      padding: orientation == Orientation.portrait ? EdgeInsets.all(
+                         MediaQuery.of(context).size.width * 0.02) : EdgeInsets.all(
+                         MediaQuery.of(context).size.height * 0.02),
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.only(
                             topLeft: Radius.circular(10),
@@ -109,11 +168,11 @@ class _SalesCalendarState extends State<SalesCalendar> {
                         textAlignVertical: TextAlignVertical.bottom,
                         textAlign: TextAlign.center,
                         decoration: InputDecoration(
-                          contentPadding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.width * 0.02),
+                          contentPadding: EdgeInsets.symmetric(vertical: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.02 : MediaQuery.of(context).size.height * 0.02),
                           isDense: true,
                           isCollapsed: true,
                           constraints: BoxConstraints(
-                            maxHeight: MediaQuery.of(context).size.width * 0.1,
+                            maxHeight: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.1 : MediaQuery.of(context).size.height * 0.1,
                             minWidth: 0,
                           ),
                           hintText: 'DD-MM--AA',
@@ -122,7 +181,7 @@ class _SalesCalendarState extends State<SalesCalendar> {
                           ),
                         ),
                         style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.width * 0.035,
+                          fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,
                         ),
                       ),
                     )
@@ -135,7 +194,7 @@ class _SalesCalendarState extends State<SalesCalendar> {
                       icon: Icon(
                         Icons.arrow_back_ios_rounded,
                         color: AppColors3.whiteColor,
-                        size: MediaQuery.of(context).size.width * 0.055,
+                        size:  orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.055 : MediaQuery.of(context).size.height * 0.055,
                       ),
                       onPressed: () {
                         int previousMonth = currentMonth! - 1;
@@ -153,7 +212,7 @@ class _SalesCalendarState extends State<SalesCalendar> {
                           ? '${getMonthName(currentMonth!)} $visibleYear'
                           : '${getMonthName(initMonth)} $visibleYear',
                       style: TextStyle(
-                          fontSize: MediaQuery.of(context).size.width * 0.05,
+                          fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
                           color: AppColors3.whiteColor),
                     ),
                     IconButton(
@@ -161,7 +220,7 @@ class _SalesCalendarState extends State<SalesCalendar> {
                       icon: Icon(
                         Icons.arrow_forward_ios_rounded,
                         color: AppColors3.whiteColor,
-                        size: MediaQuery.of(context).size.width * 0.055,
+                        size: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.055 : MediaQuery.of(context).size.height * 0.055,
                       ),
                       onPressed: () {
                         int nextMonth = currentMonth! + 1;
@@ -248,8 +307,6 @@ class _SalesCalendarState extends State<SalesCalendar> {
                             if (selectedDate == DateTime.now()) {
                               return Center(
                                 child: Container(
-                                  width: null,
-                                  height: null,
                                   decoration: BoxDecoration(
                                     color: AppColors3.primaryColor,
                                     shape: BoxShape.circle,
@@ -263,9 +320,8 @@ class _SalesCalendarState extends State<SalesCalendar> {
                                       details.date.day.toString(),
                                       style: TextStyle(
                                         color: AppColors3.whiteColor,
-                                        fontSize:
-                                        MediaQuery.of(context).size.width *
-                                            0.05,
+                                        fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width *
+                                            0.05  : MediaQuery.of(context).size.height * 0.05,
                                       ),
                                     ),
                                   ),
@@ -273,8 +329,6 @@ class _SalesCalendarState extends State<SalesCalendar> {
                               );
                             } else if (dateToShow) {
                               return Container(
-                                width: null,
-                                height: null,
                                 decoration: BoxDecoration(
                                   color: AppColors3.primaryColor,
                                   shape: BoxShape.circle,
@@ -288,8 +342,8 @@ class _SalesCalendarState extends State<SalesCalendar> {
                                     details.date.day.toString(),
                                     style: TextStyle(
                                       color: AppColors3.whiteColor,
-                                      fontSize:
-                                      MediaQuery.of(context).size.width * 0.05,
+                                      fontSize: orientation == Orientation.portrait ?
+                                      MediaQuery.of(context).size.width * 0.05  : MediaQuery.of(context).size.height * 0.05,
                                     ),
                                   ),
                                 ),
@@ -310,7 +364,8 @@ class _SalesCalendarState extends State<SalesCalendar> {
                                                 color: isInCurrentMonth
                                                     ? AppColors3.blackColor
                                                     : AppColors3.primaryColor.withOpacity(0.4),
-                                                fontSize: MediaQuery.of(context).size.width * 0.05,
+                                                fontSize: orientation == Orientation.portrait ?
+                                                MediaQuery.of(context).size.width * 0.05  : MediaQuery.of(context).size.height * 0.05,
                                               )))));
                             }
                           }))))

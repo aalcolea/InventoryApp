@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:inventory_app/establishmentInfo.dart';
 import 'package:inventory_app/inventory/sellpoint/tickets/utils/sales/listenerQuery.dart';
+import '../../../../deviceThresholds.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
 import '../../../print/printConnections.dart';
@@ -19,14 +20,15 @@ class SalesList extends StatefulWidget {
   final void Function(String) onDateChanged;
   final PrintService printService;
   final ListenerQuery listenerQuery;
+  final bool isTablet;
 
-  const SalesList({super.key, required this.onShowBlur, required this.listenerOnDateChanged, required this.dateController, required this.onDateChanged, required this.printService, required this.listenerQuery});
+  const SalesList({super.key, required this.onShowBlur, required this.listenerOnDateChanged, required this.dateController, required this.onDateChanged, required this.printService, required this.listenerQuery, required this.isTablet});
 
   @override
   State<SalesList> createState() => _SalesListState();
 }
 
-class _SalesListState extends State<SalesList> {
+class _SalesListState extends State<SalesList> with WidgetsBindingObserver{
 
   bool isLoading = false;
   List<Map<String, dynamic>> products = [];
@@ -61,9 +63,31 @@ class _SalesListState extends State<SalesList> {
     }
   }
 
+  double? screenWidth;
+  double? screenHeight;
+
+  void _initializeDeviceType() {
+    // Obtener el tamaño de la pantalla desde el binding
+    final window = WidgetsBinding.instance.window;
+    // Obtener el factor de pixel de la pantalla
+    final devicePixelRatio = window.devicePixelRatio;
+    // Obtener el tamaño en pixels lógicos
+    final physicalSize = window.physicalSize;
+    // Convertir a tamaño lógico
+    screenWidth = physicalSize.width / devicePixelRatio;
+    screenHeight = physicalSize.height / devicePixelRatio;
+    // Determinar la orientación
+    orientation = screenWidth! > screenHeight! ? Orientation.landscape : Orientation.portrait;
+    // Verificar si es tablet
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
+    isTablet = widget.isTablet;
     fetchSales(widget.dateController, widget.dateController);
     widget.listenerOnDateChanged.registrarObservador((callback, initData, finalData) async {
       if (callback) {
@@ -77,8 +101,49 @@ class _SalesListState extends State<SalesList> {
           filterSales(this.query);
           print(this.query);
     });
+    WidgetsBinding.instance.addObserver(this);
+    _initializeDeviceType();
     loadCategories();
+
   }
+
+  @override
+  void didChangeMetrics() {
+    if(mounted){
+      setState(() {
+        _initializeDeviceType();
+      });
+    }
+  }
+
+
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Actualizar los valores usando MediaQuery cuando el contexto está disponible
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
+
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
+  }
+
+  bool isTabletDevice(double width, double height, Orientation deviceOrientation) {
+    if (deviceOrientation == Orientation.portrait) {
+      return height > DeviceThresholds.minTabletHeightPortrait &&
+          width > DeviceThresholds.minTabletWidth;
+    } else {
+      return height > DeviceThresholds.minTabletHeightLandscape &&
+          width > DeviceThresholds.minTabletWidthLandscape;
+    }
+  }
+
 
   Future<void> fetchSales(String? initData, String? finalData) async{
     setState(() {
@@ -135,7 +200,7 @@ class _SalesListState extends State<SalesList> {
         children: [
           Expanded(///mejorar este ternario
             child: !isLoading ? ( products.isNotEmpty ? ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width * 0.02),
+              padding: EdgeInsets.symmetric(horizontal: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.02 : MediaQuery.of(context).size.height * 0.02),
               itemCount: productsFilterd.length,
               itemBuilder: (context, index) {
                 return Container(
@@ -144,8 +209,8 @@ class _SalesListState extends State<SalesList> {
                     children: [
                       ListTile(
                         contentPadding: EdgeInsets.symmetric(
-                            vertical: MediaQuery.of(context).size.width * 0.0075,
-                            horizontal: MediaQuery.of(context).size.width * 0.0247),
+                            vertical: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.0075 : MediaQuery.of(context).size.height * 0.0075,
+                            horizontal: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.0247 : MediaQuery.of(context).size.height * 0.0247),
                         title: Row(
                           children: [
                             Column(
@@ -159,14 +224,16 @@ class _SalesListState extends State<SalesList> {
                                       "Cant.: ",
                                       style: TextStyle(
                                           color: AppColors.primaryColor.withOpacity(0.5),
-                                          fontSize: MediaQuery.of(context).size.width * 0.035),
+                                        fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                        MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,),
                                     ),
                                     Text(
                                       '${productsFilterd[index]['cantidad']} pzs',
                                       style: TextStyle(
                                           color: AppColors.primaryColor,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: MediaQuery.of(context).size.width * 0.035),
+                                        fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                        MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,),
                                     ),
                                   ],
                                 ),
@@ -176,14 +243,16 @@ class _SalesListState extends State<SalesList> {
                                       "Precio unitario: ",
                                       style: TextStyle(
                                           color: AppColors.primaryColor.withOpacity(0.5),
-                                          fontSize: MediaQuery.of(context).size.width * 0.035),
+                                        fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                        MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,),
                                     ),
                                     Text(
                                       '\$${productsFilterd [index]['precio']}',
                                       style: TextStyle(
                                         color: AppColors.primaryColor,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.width * 0.035,
+                                          fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                          MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,
                                       ),
                                     ),
                                   ],
@@ -194,14 +263,16 @@ class _SalesListState extends State<SalesList> {
                                       "Total: ",
                                       style: TextStyle(
                                           color: AppColors.primaryColor.withOpacity(0.5),
-                                          fontSize: MediaQuery.of(context).size.width * 0.035),
+                                        fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                        MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,),
                                     ),
                                     Text(
                                       '\$${productsFilterd[index]['total'].toStringAsFixed(2)}',
                                       style: TextStyle(
                                         color: AppColors.primaryColor,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.width * 0.035,
+                                          fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                          MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,
                                       ),
                                     ),
                                   ],
@@ -212,14 +283,16 @@ class _SalesListState extends State<SalesList> {
                                       "Fecha de venta: ",
                                       style: TextStyle(
                                           color: AppColors.primaryColor.withOpacity(0.5),
-                                          fontSize: MediaQuery.of(context).size.width * 0.035),
+                                        fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                        MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,),
                                     ),
                                     Text(
                                       '${productsFilterd[index]['fecha_venta']}',
                                       style: TextStyle(
                                         color: AppColors.primaryColor,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: MediaQuery.of(context).size.width * 0.035,
+                                          fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ?
+                                          MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035,
                                       ),
                                     ),
                                   ],
@@ -231,7 +304,7 @@ class _SalesListState extends State<SalesList> {
                       ),
                       Divider(
                         color: AppColors.primaryColor,
-                        thickness: MediaQuery.of(context).size.width * 0.0055,
+                        thickness: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.0055 : MediaQuery.of(context).size.height * 0.0055,
                       ),
                     ],
                   ),
@@ -250,6 +323,9 @@ class _SalesListState extends State<SalesList> {
             ),
           ),
           Container(
+            padding: EdgeInsets.symmetric(
+                vertical: !isTablet ? MediaQuery.of(context).size.width * 0.02 : orientation == Orientation.portrait ?
+            MediaQuery.of(context).size.width * 0.012 : MediaQuery.of(context).size.height * 0.012),
             decoration: BoxDecoration(
               color: AppColors.bgColor,
               border: const Border(top: BorderSide(color: AppColors.primaryColor, width: 2)),
@@ -263,8 +339,6 @@ class _SalesListState extends State<SalesList> {
                 )
               ],
             ),
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height * 0.12,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -294,13 +368,15 @@ class _SalesListState extends State<SalesList> {
                     icon: Icon(
                       CupertinoIcons.printer_fill,
                       color: productsFilterd.isNotEmpty ? AppColors.primaryColor : AppColors.primaryColor.withOpacity(0.3),
-                      size: MediaQuery.of(context).size.height * 0.05,
+                      size: !isTablet ? MediaQuery.of(context).size.height * 0.05 : orientation == Orientation.portrait ?
+                      MediaQuery.of(context).size.width * 0.062 : MediaQuery.of(context).size.height * 0.062,
                     ),
                   ),
                 ),
                 Container(
-                  width: MediaQuery.of(context).size.width * 0.005,
-                  height: MediaQuery.of(context).size.width * 0.15,
+                  width: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.005 : MediaQuery.of(context).size.height * 0.005,
+                  height: !isTablet ? MediaQuery.of(context).size.height * 0.1 : orientation == Orientation.portrait ?
+                  MediaQuery.of(context).size.width * 0.1 : MediaQuery.of(context).size.height * 0.1, /*orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.15 : MediaQuery.of(context).size.height * 0.15,*/
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(1),
                     color: AppColors.primaryColor.withOpacity(0.2),
@@ -320,7 +396,8 @@ class _SalesListState extends State<SalesList> {
                     icon: Icon(
                       CupertinoIcons.arrow_down_doc_fill,
                       color:  productsFilterd.isNotEmpty ? AppColors.primaryColor : AppColors.primaryColor.withOpacity(0.3),
-                      size: MediaQuery.of(context).size.height * 0.05,
+                      size: !isTablet ? MediaQuery.of(context).size.height * 0.05 : orientation == Orientation.portrait ?
+                      MediaQuery.of(context).size.width * 0.065 : MediaQuery.of(context).size.height * 0.065,
                     ),
                   ),
                 )
@@ -343,7 +420,8 @@ class _SalesListState extends State<SalesList> {
               fontFamily: 'Poppins',
               fontWeight: FontWeight.bold,
               height: 2,
-              fontSize: MediaQuery.of(context).size.width * 0.05));
+            fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.05 : orientation == Orientation.portrait ?
+            MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,));
     }
 
     final lowerCaseText = text.toLowerCase();
@@ -359,7 +437,8 @@ class _SalesListState extends State<SalesList> {
               fontFamily: 'Poppins',
               fontWeight: FontWeight.bold,
               height: 2,
-              fontSize: MediaQuery.of(context).size.width * 0.05));
+            fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.05 : orientation == Orientation.portrait ?
+            MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,));
     }
 
     final beforeMatch = text.substring(0, startIndex);
@@ -378,7 +457,8 @@ class _SalesListState extends State<SalesList> {
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.bold,
                     height: 2,
-                    fontSize: MediaQuery.of(context).size.width * 0.05,
+                    fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.05 : orientation == Orientation.portrait ?
+                    MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
                   )),
               TextSpan(
                   text: matchText,
@@ -387,7 +467,8 @@ class _SalesListState extends State<SalesList> {
                       fontFamily: 'Poppins',
                       fontWeight: FontWeight.bold,
                       height: 2,
-                      fontSize: MediaQuery.of(context).size.width * 0.05,
+                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.05 : orientation == Orientation.portrait ?
+                      MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
                       fontStyle: FontStyle.normal,
                       decoration: TextDecoration.underline
                   )),
@@ -398,7 +479,8 @@ class _SalesListState extends State<SalesList> {
                     fontFamily: 'Poppins',
                     fontWeight: FontWeight.bold,
                     height: 2,
-                    fontSize: MediaQuery.of(context).size.width * 0.05,
+                    fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.05 : orientation == Orientation.portrait ?
+                    MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
                   ))]));
   }
 }

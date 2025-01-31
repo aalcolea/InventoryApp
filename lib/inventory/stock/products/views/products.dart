@@ -176,7 +176,7 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                 barCode: products_global[index]['barCod'],
                 catId: products_global[index]['catId'],
                 id: products_global[index]['id'],
-                descripcion: products_global[index]['descripcion'],
+                descripcion: products_global[index]['descripcion'] ?? '',
                 columnHeight: colHeight,
                 onProductDeleted: () async {
                   await refreshProducts();
@@ -308,6 +308,7 @@ class ProductsState extends State<Products> with TickerProviderStateMixin {
                                     setState(() {});
                                   },
                                   onShowBlur: widget.onShowBlur,
+                                  onProductDeleted: () async {  await refreshProducts(); removeOverlay();},
                                 ),
                               ),
                             );

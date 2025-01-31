@@ -679,6 +679,7 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin, WidgetsB
                                           setState(() {});
                                         },
                                         onShowBlur: widget.onShowBlur,
+                                        onProductDeleted: () async { await refreshProducts();removeOverlay(); },
                                       ),
                                     ),
                                   );

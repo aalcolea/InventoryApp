@@ -747,12 +747,14 @@ class _CartState extends State<Cart> {
                     padding: EdgeInsets.symmetric(vertical: MediaQuery.of(context).size.width * 0.02,
                         horizontal: MediaQuery.of(context).size.width * 0.08)
                 ),
-                onPressed: cartProvider.cart.isNotEmpty ? () async {
-                  widget.onShowBlurr(true);
-                  final confirmData = await showConfirmSellDialog(context);
-                  if (confirmData != null) {
-                    bool isCardPayment = confirmData['isCardPayment'] ?? false;
-                    bool canPrint = false;
+              onPressed: cartProvider.cart.isNotEmpty ? () async {
+                widget.onShowBlurr(true);
+                final confirmData = await showConfirmSellDialog(context);
+                if (confirmData != null) {
+                  bool isCardPayment = confirmData['isCardPayment'] ?? false;
+                  bool shouldPrint = confirmData['shouldPrint'] ?? false;
+                  bool canPrint = false;
+                  if (shouldPrint) {
                     try{
                       await widget.printService.ensureCharacteristicAvailable();
                       if(widget.printService.characteristic != null){
@@ -765,25 +767,26 @@ class _CartState extends State<Cart> {
                     if(canPrint){
                       PrintService2 printService2 = PrintService2(widget.printService.characteristic!);
                       try{
-                        Platform.isAndroid ? await printService2.connectAndPrintAndroide(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo) :
-                        await printService2.connectAndPrintIOS(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo);
+                         Platform.isAndroid ? await printService2.connectAndPrintAndroide(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo) :
+                          await printService2.connectAndPrintIOS(cartProvider.cart, Establishmentinfo.logoRootAsset, Establishmentinfo.logo);
                       } catch(e){
                         print("Error al intentar imprimir: $e");
                         showOverlay(context, const CustomToast(message: 'Error al intentar imprimir'));
                       }
                     }
-                    bool result = await cartProvider.sendCart(isCardPayment);
-                    widget.onShowBlurr(false);
-                    if(result){
-                      showOverlay(context, const CustomToast(message: 'Venta efectuada correctamente'));
-                      cartProvider.refreshCart();
-                    }else{
-                      showOverlay(context, const CustomToast(message: 'Error al efectuar la venta'));
-                    }
-                  }else{
-                    widget.onShowBlurr(false);
                   }
-                } : null,
+                  bool result = await cartProvider.sendCart(isCardPayment);
+                  widget.onShowBlurr(false);
+                  if(result){
+                    showOverlay(context, const CustomToast(message: 'Venta efectuada correctamente'));
+                    cartProvider.refreshCart();
+                  }else{
+                    showOverlay(context, const CustomToast(message: 'Error al efectuar la venta'));
+                  }
+                }else{
+                  widget.onShowBlurr(false);
+                }
+              } : null,
                 child: Text(
                   'Pagar',
                   style: !isTablet ? TextStyle(

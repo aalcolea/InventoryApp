@@ -10,6 +10,7 @@ import '../../categories/forms/categoryBox.dart';
 import '../../utils/listenerCatBox.dart';
 import '../services/productsService.dart';
 import '../styles/productFormStyles.dart';
+import '../utils/PopUpTabs/deleteProductDialog.dart';
 
 class ProductDetails extends StatefulWidget {
   final int idProduct;
@@ -438,8 +439,17 @@ class _ProductDetailsState extends State<ProductDetails> {
                                   ),
                                 ),
                                 onPressed: () {
-                                  setState(() {
-                                  });
+                                  showDeleteProductConfirmationDialog(context, () async {
+                                    await productService.deleteProduct(widget.idProduct);
+                                    if (mounted) {
+                                      showOverlay(
+                                        context,
+                                        const CustomToast(
+                                          message: 'Producto eliminado',
+                                        ),
+                                      );
+                                    }
+                                  })
                                 },
                                 child: const Text('Eliminar Producto', style: TextStyle(color: AppColors.redDelete),),
                               ),

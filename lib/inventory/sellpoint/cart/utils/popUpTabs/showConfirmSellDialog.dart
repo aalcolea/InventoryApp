@@ -4,6 +4,7 @@ import '../../../../themes/colors.dart';
 
 Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async {
   bool isCardPayment = false;
+  bool shouldPrint = false;
   return await showDialog<Map<String, dynamic>>(
     context: context,
     barrierColor: Colors.transparent,
@@ -65,6 +66,22 @@ Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async 
                           isCardPayment = value ?? false;
                         });
                       },
+                    ),CheckboxListTile(
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: MediaQuery.of(context).size.width * 0.07),
+                      title: Text(
+                        'Imprimir ticket',
+                        style: TextStyle(
+                          fontSize: MediaQuery.of(context).size.width * 0.045,
+                          color: AppColors.blackColor,
+                        ),
+                      ),
+                      value: shouldPrint,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          shouldPrint = value ?? false;
+                        });
+                      },
                     ),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -97,6 +114,7 @@ Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async 
                           onPressed: () {
                             Navigator.of(context).pop({
                               'isCardPayment': isCardPayment,
+                              'shouldPrint': shouldPrint,
                             });
                           },
                           child: Container(

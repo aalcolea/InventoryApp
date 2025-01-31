@@ -66,7 +66,8 @@ Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async 
                           isCardPayment = value ?? false;
                         });
                       },
-                    ),CheckboxListTile(
+                    ),
+                    CheckboxListTile(
                       contentPadding: EdgeInsets.symmetric(
                           horizontal: MediaQuery.of(context).size.width * 0.07),
                       title: Text(

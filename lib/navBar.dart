@@ -19,9 +19,11 @@ class navBar extends StatefulWidget {
   final Function(int) onItemSelected;
   final void Function(bool) onLockScreen;
   final String currentScreen;
+  final bool isTablet;
+  final Orientation orientation;
 
   const navBar({super.key, required this.onItemSelected, required this.onShowBlur, required this.currentScreen,
-    this.onPrintServiceComunication, this.printServiceAfterInitConn, this.btChar, required this.onLockScreen});
+    this.onPrintServiceComunication, this.printServiceAfterInitConn, this.btChar, required this.onLockScreen, required this.isTablet, required this.orientation});
 
   @override
   State<navBar> createState() => _navBarState();
@@ -39,8 +41,26 @@ class _navBarState extends State<navBar> {
     Navigator.of(context).pop();
   }
 
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
+  double? screenWidth;
+  double? screenHeight;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Actualizar los valores usando MediaQuery cuando el contexto está disponible
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
+  }
+
+
+
   @override
   void initState() {
+    orientation = widget.orientation;
     if(widget.btChar != null){
       setState(() {
         printService.selectedDevice = widget.printServiceAfterInitConn?.selectedDevice;
@@ -94,7 +114,8 @@ class _navBarState extends State<navBar> {
         child: Consumer<PrintService>(
         builder: (context, printService, child){
           return  Drawer(
-            width: MediaQuery.of(context).size.width * 0.725,
+            width: !widget.isTablet ? MediaQuery.of(context).size.width * 0.725 : orientation == Orientation.portrait ?
+            MediaQuery.of(context).size.width * 0.55 : MediaQuery.of(context).size.height * 0.55,
             backgroundColor: AppColors3.whiteColor,
             child: Stack(
               children: [
@@ -102,18 +123,21 @@ class _navBarState extends State<navBar> {
                     decoration: const BoxDecoration(
                       color: Colors.transparent,
                     ),
-                    padding: EdgeInsets.only(top: MediaQuery.of(context).size.width*0.17),
+                    padding: !widget.isTablet ? EdgeInsets.only(top: MediaQuery.of(context).size.width * 0.17) : orientation == Orientation.portrait ?
+                    EdgeInsets.only(top: MediaQuery.of(context).size.width * 0.17) :
+                    EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.1),
                     child: Column(
                         children: [
                           Padding(
-                            padding: EdgeInsets.only(bottom: 30, left: 20),
+                            padding: !widget.isTablet ? EdgeInsets.only(bottom: 30, left: 20) : orientation == Orientation.portrait ? EdgeInsets.only(bottom: 30, left: 20) : EdgeInsets.only(bottom: 30, left: 20),
                             child: Row(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 children: [
                                   CircleAvatar(
-                                    radius: MediaQuery.of(context).size.width*0.05,
+                                    radius: !widget.isTablet ? MediaQuery.of(context).size.width * 0.05 : orientation == Orientation.portrait ?
+                                    MediaQuery.of(context).size.width * 0.045 : MediaQuery.of(context).size.height * 0.045,
                                     backgroundColor: AppColors3.primaryColor,
-                                    child: Icon(Icons.person, color: Colors.white, size: MediaQuery.of(context).size.width * 0.08,)
+                                    child: Icon(Icons.person, color: Colors.white, size: !widget.isTablet ? MediaQuery.of(context).size.width * 0.08 : MediaQuery.of(context).size.height * 0.05)
                                   ),
                                   Container(
                                       padding: const EdgeInsets.only(left: 10),
@@ -122,7 +146,12 @@ class _navBarState extends State<navBar> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(SessionManager.instance.Nombre == 'Dulce' ? 'Admin' : SessionManager.instance.Nombre,
-                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.width*0.05, color: AppColors3.primaryColor)),
+                                              style: !widget.isTablet ? TextStyle(
+                                                  fontWeight: FontWeight.bold, fontSize: MediaQuery.of(context).size.width*0.05,
+                                                  color: AppColors3.primaryColor) :
+                                              TextStyle(
+                                                  fontWeight: FontWeight.bold, fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 :  MediaQuery.of(context).size.height * 0.04,
+                                                  color: AppColors3.primaryColor)),
                                           Text('MiniSuper San Juan Diego', style: TextStyle(color: AppColors3.primaryColor.withOpacity(0.8)),)
                                         ],
                                       )
@@ -211,7 +240,8 @@ class _navBarState extends State<navBar> {
                                                 ),
                                                 child: Icon(
                                                   isConecct == null ? Icons.print_disabled_outlined : !isConecct! ?  Icons.print_disabled_outlined : Icons.print_outlined,
-                                                  size: MediaQuery.of(context).size.width * 0.08,
+                                                  size: !widget.isTablet ? MediaQuery.of(context).size.width * 0.08 : orientation == Orientation.portrait ?
+                                                  MediaQuery.of(context).size.width * 0.07 : MediaQuery.of(context).size.height * 0.07,
                                                   color: AppColors3.primaryColor,),),
                                               Expanded(
                                                 child: Column(
@@ -220,17 +250,30 @@ class _navBarState extends State<navBar> {
                                                   children: [
                                                     Text(
                                                       'Impresora',
-                                                      style: TextStyle(
+                                                      style: !widget.isTablet ? TextStyle(
                                                           fontWeight: FontWeight.bold,
-                                                          fontSize: MediaQuery.of(context).size.width*0.05,
+                                                          fontSize: MediaQuery.of(context).size.width * 0.05,
+                                                          color: AppColors3.primaryColor
+                                                      ) : TextStyle(
+                                                          fontWeight: FontWeight.w500,
+                                                          fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
                                                           color: AppColors3.primaryColor
                                                       ),
                                                     ),Text(
                                                       isConecct == null ? 'Conectando...' : isConecct! ? 'Conectada' : 'Desconectada',
-                                                      style: TextStyle(
-                                                          fontSize: MediaQuery.of(context).size.width*0.04,
+                                                      style: !widget.isTablet ? TextStyle(
+                                                          fontWeight: FontWeight.w500,
+                                                          fontSize: MediaQuery.of(context).size.width * 0.04,
+                                                          color: AppColors3.primaryColor.withOpacity(0.4)
+                                                      ) : TextStyle(
+                                                          fontWeight: FontWeight.w500,
+                                                          fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
                                                           color: AppColors3.primaryColor.withOpacity(0.4)
                                                       ),
+                                                      /*style: TextStyle(
+                                                          fontSize: MediaQuery.of(context).size.width*0.04,
+                                                          color: AppColors3.primaryColor.withOpacity(0.4)
+                                                      ),*/
                                                     ),
                                                   ],
                                                 ),),
@@ -280,9 +323,20 @@ class _navBarState extends State<navBar> {
                                             child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
-                                                  const Icon(Icons.exit_to_app, color: AppColors3.primaryColor),
+                                                  Icon(Icons.exit_to_app, color: AppColors3.primaryColor,
+                                                  size: !widget.isTablet ? MediaQuery.of(context).size.width * 0.08 : orientation == Orientation.portrait ?  MediaQuery.of(context).size.width * 0.055 :
+                                                  MediaQuery.of(context).size.height * 0.055,
+                                                  ),
                                                   SizedBox(width: 10),
-                                                  Text('Cerrar sesion', style: TextStyle(fontSize: MediaQuery.of(context).size.width*0.05, color: AppColors3.primaryColor))
+                                                  Text('Cerrar sesion', style: !widget.isTablet ? TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: MediaQuery.of(context).size.width * 0.05,
+                                                      color: AppColors3.primaryColor
+                                                  ) : TextStyle(
+                                                      fontWeight: FontWeight.w500,
+                                                      fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
+                                                      color: AppColors3.primaryColor
+                                                  ),)
                                                 ]))])))])),
 
               ],

@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../../deviceThresholds.dart';
 import '../../../../regEx.dart';
+import '../../../deviceManager.dart';
 import '../../../themes/colors.dart';
 import '../../../../helpers/utils/showToast.dart';
 import '../../../../helpers/utils/toastWidget.dart';
@@ -31,7 +34,7 @@ class ProductDetails extends StatefulWidget {
   State<ProductDetails> createState() => _ProductDetailsState();
 }
 
-class _ProductDetailsState extends State<ProductDetails> {
+class _ProductDetailsState extends State<ProductDetails> with WidgetsBindingObserver{
 
   //
   TextEditingController nameController = TextEditingController();
@@ -99,12 +102,83 @@ class _ProductDetailsState extends State<ProductDetails> {
     }
   }
 
-  @override
+/*  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     screenWidth = MediaQuery.of(context).size.width;
     screenHeight = MediaQuery.of(context).size.height;
+  }*/
+  var orientation = Orientation.portrait;
+  bool isTablet = false;
+
+  @override
+  void didChangeDependencies() {
+    //keyboardVisibilityManager.dispose();
+    super.didChangeDependencies();
+    final mediaQuery = MediaQuery.of(context);
+    screenWidth = mediaQuery.size.width;
+    screenHeight = mediaQuery.size.height;
+    orientation = mediaQuery.orientation;
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+    });
   }
+
+  @override
+  void didChangeMetrics() {
+    if(mounted){
+      setState(() {
+        _initializeDeviceType();
+      });
+    }
+  }
+
+  void _initializeDeviceType() {
+    // Obtener el tamaño de la pantalla desde el binding
+    final window = WidgetsBinding.instance.window;
+    // Obtener el factor de pixel de la pantalla
+    final devicePixelRatio = window.devicePixelRatio;
+    // Obtener el tamaño en pixels lógicos
+    final physicalSize = window.physicalSize;
+    // Convertir a tamaño lógico
+    screenWidth = physicalSize.width / devicePixelRatio;
+    screenHeight = physicalSize.height / devicePixelRatio;
+    // Determinar la orientación
+    orientation = screenWidth! > screenHeight! ? Orientation.landscape : Orientation.portrait;
+    // Verificar si es tablet
+    setState(() {
+      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
+      _setAllowedOrientations();
+    });
+  }
+
+  void _setAllowedOrientations() {
+    if (isTablet) {
+      // Si es tablet, permitir todas las orientaciones
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+        DeviceOrientation.portraitDown,
+        DeviceOrientation.landscapeLeft,
+        DeviceOrientation.landscapeRight,
+      ]);
+    } else {
+      // Si no es tablet, forzar orientación vertical
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.portraitUp,
+      ]);
+    }
+  }
+
+  bool isTabletDevice(double width, double height, Orientation deviceOrientation) {
+    if (deviceOrientation == Orientation.portrait) {
+      return height > DeviceThresholds.minTabletHeightPortrait &&
+          width > DeviceThresholds.minTabletWidth;
+    } else {
+      return height > DeviceThresholds.minTabletHeightLandscape &&
+          width > DeviceThresholds.minTabletWidthLandscape;
+    }
+  }
+
 
   void changeFocus(
       BuildContext context, FocusNode currentFocus, FocusNode nextFocus) {
@@ -114,6 +188,11 @@ class _ProductDetailsState extends State<ProductDetails> {
 
   @override
   void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
     nameController.text = widget.nameProd;
     descriptionController.text = widget.descriptionProd;
     barCodeController.text = widget.barCode.toString();
@@ -123,13 +202,20 @@ class _ProductDetailsState extends State<ProductDetails> {
     _catID =  widget.catId;
     keyboardVisibilityManager = KeyboardVisibilityManager();
     // TODO: implement initState
-    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _initializeDeviceType();
   }
 
   @override
   void dispose() {
     // TODO: implement dispose
     keyboardVisibilityManager.dispose();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
     super.dispose();
   }
   void onSelectedCat (int catID) {
@@ -171,7 +257,8 @@ class _ProductDetailsState extends State<ProductDetails> {
                     },
                     icon: Icon(
                       CupertinoIcons.back,
-                      size: MediaQuery.of(context).size.width * 0.08,
+                      size: !isTablet ? MediaQuery.of(context).size.width * 0.08 : orientation == Orientation.portrait ?
+                      MediaQuery.of(context).size.width * 0.055 : MediaQuery.of(context).size.height * 0.08,
                       color: AppColors.primaryColor,
                     ),
                   ),),
@@ -187,9 +274,10 @@ class _ProductDetailsState extends State<ProductDetails> {
                           'Modificar',
                           style: TextStyle(
                             color: AppColors.primaryColor,
-                            fontSize: screenWidth! < 370.00
+                            fontSize: !isTablet ? screenWidth! < 370.00
                                 ? MediaQuery.of(context).size.width * 0.078
-                                : MediaQuery.of(context).size.width * 0.082,
+                                : MediaQuery.of(context).size.width * 0.082 : orientation == Orientation.portrait ?
+                            MediaQuery.of(context).size.width * 0.063 : MediaQuery.of(context).size.height * 0.063,
                             fontWeight: FontWeight.bold,
                           ),)
                       ])),),
@@ -237,7 +325,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         children: [
                           Column(
                             children: [
-                              TitleModContainer(text: 'Nombre'),
+                              TitleModContainer(text: 'Nombre', isTablet: isTablet),
                               Padding(
                                   padding: EdgeInsets.only(
                                   left: MediaQuery.of(context).size.width * 0.03,
@@ -254,7 +342,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                           ),
                           Column(
                             children: [
-                              TitleModContainer(text: 'Descripción'),
+                              TitleModContainer(text: 'Descripción', isTablet: isTablet),
                               Padding(padding: EdgeInsets.only(
                                   left: MediaQuery.of(context).size.width * 0.03,
                                   right: MediaQuery.of(context).size.width * 0.03),
@@ -266,7 +354,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                   ))]),
                           Column(
                             children: [
-                              TitleModContainer(text: 'Código de barras'),
+                              TitleModContainer(text: 'Código de barras', isTablet: isTablet),
                               Padding(padding: EdgeInsets.only(
                                   left: MediaQuery.of(context).size.width * 0.03,
                                   right: MediaQuery.of(context).size.width * 0.03),
@@ -280,7 +368,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                                   ))]),
                           Column(
                             children: [
-                              TitleModContainer(text: 'Categoría'),
+                              TitleModContainer(text: 'Categoría', isTablet: isTablet),
                               Padding(padding: EdgeInsets.only(
                                   left: MediaQuery.of(context).size.width * 0.03,
                                   right: MediaQuery.of(context).size.width * 0.03),
@@ -309,8 +397,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                                           'Cantidad',
                                           style: TextStyle(
                                             color: AppColors.whiteColor,
-                                            fontSize: MediaQuery.of(context).size.width * 0.045,
-                                            fontWeight: FontWeight.bold,
+                                            fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.045 : orientation == Orientation.portrait ?
+                                            MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
+                                            fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                       ),
@@ -353,8 +442,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                                         'Precio retail',
                                         style: TextStyle(
                                           color: AppColors.whiteColor,
-                                          fontSize: MediaQuery.of(context).size.width * 0.045,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.045 : orientation == Orientation.portrait ?
+                                          MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ),
@@ -394,8 +484,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                                         'Precio de venta',
                                         style: TextStyle(
                                           color: AppColors.whiteColor,
-                                          fontSize: MediaQuery.of(context).size.width * 0.045,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.045 : orientation == Orientation.portrait ?
+                                          MediaQuery.of(context).size.width * 0.04 : MediaQuery.of(context).size.height * 0.04,
+                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ),
@@ -441,7 +532,10 @@ class _ProductDetailsState extends State<ProductDetails> {
                                   setState(() {
                                   });
                                 },
-                                child: const Text('Eliminar Producto', style: TextStyle(color: AppColors.redDelete),),
+                                child: Text('Eliminar Producto', style: TextStyle(
+                                    fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ?
+                                    MediaQuery.of(context).size.width * 0.028 : MediaQuery.of(context).size.height * 0.04,
+                                    color: AppColors.redDelete),),
                               ),
                             ),),
                         ],

@@ -167,10 +167,11 @@ class _ProductOptionsState extends State<ProductOptions> {
                                           stock: widget.stock,
                                           precio: widget.precio,
                                           precioRetail: widget.precio,///todo here
+                                          onProductDeleted: () async { await productService.refreshProducts(widget.catId);  },
                                           onProductModified: () async {
                                             await productService.refreshProducts(widget.catId);
                                           },
-                                          onShowBlur: widget.onShowBlur
+                                          onShowBlur: widget.onShowBlur,
                                       ),
                                     ),
                                   ).then((_) {

@@ -43,18 +43,6 @@ class BarcodeScannerService {
   final reconnectionController = StreamController<void>.broadcast();
   _ActivityLifecycleObserver? _lifecycleObserver;
 
-  //
-  FocusNode get focusNode2 {
-    if (_focusNode == null || !_focusNode!.hasListeners) {
-      _focusNode?.dispose(); // Dispose el anterior si existe
-      _focusNode = FocusNode();
-    }
-    return _focusNode!;
-  }
-
-
-  //
-
   void initialize(BuildContext context, Function(String) onScanned) {
 
     dispose();
@@ -64,34 +52,11 @@ class BarcodeScannerService {
     _focusNode = FocusNode();
 
     if (Platform.isAndroid) {
-      _lifecycleObserver = _ActivityLifecycleObserver(
-        onResume: () {
-          Future.delayed(Duration(milliseconds: 500), () {
-            if (_focusNode != null &&
-                !_focusNode!.hasFocus &&
-                _focusNode!.hasListeners &&
-                _focusNode!.canRequestFocus) {
-              _focusNode!.requestFocus();
-            }
-          });
-        },
-        onPause: () {
-          if (_focusNode != null &&
-              _focusNode!.hasListeners &&
-              _focusNode!.hasFocus) {
-            _focusNode!.canRequestFocus;
-          }
-        },
-      );
-      WidgetsBinding.instance.addObserver(_lifecycleObserver!);
-    }
-
-    /*if (Platform.isAndroid) {
       // Escuchar eventos de lifecycle de la app
       _lifecycleObserver  = _ActivityLifecycleObserver(
           onResume: () {
             // Dar tiempo al sistema para estabilizarse
-            Future.delayed(Duration(milliseconds: 500), () {
+            Future.delayed(const Duration(milliseconds: 500), () {
               if (!focusNode.hasFocus && focusNode.canRequestFocus) {
                 focusNode.requestFocus();
               }
@@ -111,7 +76,7 @@ class BarcodeScannerService {
         }
         return null;
       });
-    }*/
+    }
   }
 
   void dispose() {
@@ -119,7 +84,11 @@ class BarcodeScannerService {
       WidgetsBinding.instance.removeObserver(_lifecycleObserver!);
       _lifecycleObserver = null;
     }
-    reconnectionController.close();
+
+    if (!reconnectionController.isClosed) {
+      reconnectionController.close();
+    }
+
     if (_focusNode != null) {
       if (_focusNode!.hasPrimaryFocus) {
         _focusNode!.unfocus();
@@ -127,9 +96,11 @@ class BarcodeScannerService {
       _focusNode!.dispose();
       _focusNode = null;
     }
+
     bufferClearTimer?.cancel();
     onBarcodeScanned = null;
     _context = null;
+    barcodeBuffer = '';
   }
 
   List<String> _normalizeBarcode(String barcode) {
@@ -157,6 +128,7 @@ class BarcodeScannerService {
         } else {
           if (event.character != null && event.character!.isNotEmpty) {
             barcodeBuffer += event.character!;
+            print('object');
             bufferClearTimer?.cancel();
             bufferClearTimer = Timer(const Duration(milliseconds: 200), () {
               barcodeBuffer = '';
@@ -171,7 +143,7 @@ class BarcodeScannerService {
 
   Widget wrapWithKeyboardListener(Widget child) {
     return RawKeyboardListener(
-      focusNode: focusNode2,
+      focusNode: focusNode,
       onKey: handleKeyEvent,
       child: child,
     );

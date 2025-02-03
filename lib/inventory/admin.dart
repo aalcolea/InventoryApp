@@ -325,25 +325,26 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
     keyboardVisibilityManager = KeyboardVisibilityManager();
     bool isUsingTextField = false;
 
-    // Suscripción al teclado
     keyboardVisibilityManager.keyboardVisibilitySubscription =
         keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
-          if (!mounted) return; // Verificar si el widget está montado
+          if (!mounted) return;
 
-          if (visible) {
-            if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
-                FocusManager.instance.primaryFocus?.context?.widget is TextFormField) {
-              isUsingTextField = true;
-              // Verificar si aún tiene listeners
+          setState(() {
+            if (visible) {
+              if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
+                  FocusManager.instance.primaryFocus?.context?.widget is TextFormField) {
+                isUsingTextField = true;
                 scannerService.focusNode.unfocus();
-            }
-          } else {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted && !isUsingTextField && scannerService.focusNode.hasListeners) {
-                scannerService.focusNode.requestFocus();
               }
-            });
-          }
+            } else {
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted && !isUsingTextField) {
+                  scannerService.focusNode.requestFocus();
+                }
+                isUsingTextField = false; // Resetear el flag cuando el teclado se oculta
+              });
+            }
+          });
         });
 
     Future.microtask(() {
@@ -351,15 +352,11 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
 
       scannerService.initialize(context, handleBarcode);
 
-      // Agregar listener solo si el widget está montado
       if (mounted) {
         scannerService.focusNode.addListener(() {
-          if (!isUsingTextField && mounted) {
+          if (!isUsingTextField && mounted && !keyboardVisibilityManager.keyboardVisibilityController.isVisible) {
             Future.delayed(const Duration(milliseconds: 300), () {
-              if (mounted &&
-                  scannerService.focusNode.hasListeners &&
-                  !scannerService.focusNode.hasFocus &&
-                  !keyboardVisibilityManager.keyboardVisibilityController.isVisible) {
+              if (mounted && !scannerService.focusNode.hasFocus) {
                 scannerService.focusNode.requestFocus();
               }
             });
@@ -368,7 +365,7 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
       }
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && scannerService.focusNode.hasListeners) {
+        if (mounted) {
           scannerService.focusNode.requestFocus();
         }
       });
@@ -513,17 +510,19 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
                 body: Stack(
                     children: [
                       Container(
-                        margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.03),
+                        margin: EdgeInsets.only(top:!deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.01 : orientation == Orientation.portrait ?
+                        MediaQuery.of(context).size.width * 0.01 : MediaQuery.of(context).size.height * 0.01),
                         color: AppColors.bgColor,
                         padding: EdgeInsets.only(
-                            top: MediaQuery.of(context).size.height * 0.04),
+                            top: !deviceInfo.isTablet ? MediaQuery.of(context).size.height * 0.04 : orientation == Orientation.portrait ?
+                            MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Padding(
                               padding: EdgeInsets.only(
-                                left: MediaQuery.of(context).size.width * 0.045,
-                                right: MediaQuery.of(context).size.width * 0.025,
+                                left: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.03 : orientation == Orientation.portrait ?
+                                MediaQuery.of(context).size.width * 0.03 : MediaQuery.of(context).size.width * 0.03,
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

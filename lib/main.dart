@@ -53,7 +53,17 @@ void main() async {
 }
 Future<bool> isRunningOnSimulator() async {
   if (!Platform.isIOS) return false;
-  return kDebugMode && !kIsWeb;
+
+  try {
+    ProcessResult result = await Process.run('uname', ['-m']);
+    String output = result.stdout.toString().trim();
+    print("Resultado de uname -m: $output");
+
+    return output == "x86_64" || output == "i386";
+  } catch (e) {
+    print("Error detectando simulador: $e");
+    return false;
+  }
 }
 class MyApp extends StatefulWidget {
   const MyApp({super.key});

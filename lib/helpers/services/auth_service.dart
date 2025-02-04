@@ -72,8 +72,22 @@ class PinEntryScreenState extends State<PinEntryScreen> with SingleTickerProvide
     aniController.dispose();
     super.dispose();
   }
+  Future<bool> isRunningOnSimulator() async {
+    if (!Platform.isIOS) return false;
+
+    try {
+      ProcessResult result = await Process.run('uname', ['-m']);
+      String output = result.stdout.toString().trim();
+      print("Resultado de uname -m: $output");
+
+      return output == "x86_64" || output == "i386";
+    } catch (e) {
+      print("Error detectando simulador: $e");
+      return false;
+    }
+  }
   Future<String?> getFCMToken() async {
-    bool isSimulator = Platform.isIOS && !Platform.isMacOS && !Platform.isLinux && !Platform.isWindows;
+    bool isSimulator = await isRunningOnSimulator();
 
     if (isSimulator) {
       print('Ejecutando en un simulador de iOS: No se obtiene token FCM');

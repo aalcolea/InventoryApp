@@ -31,7 +31,7 @@ class DatabaseHelpers {
 
     if (token != null) {
       var response = await http.get(
-        Uri.parse('https://beauteapp-dd0175830cc2.herokuapp.com/api/user'),
+        Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/user'),
         headers: {'Authorization': 'Bearer $token'},
       );
 

@@ -42,7 +42,7 @@ class _LoginState extends State<Login> {
                     onPressed: () {
                       setState(() {
                         showPinEntryScreen = true;
-                        userIdHelper = 3;
+                        userIdHelper = 1;
                         isDocLog = false;
                       });
                     },

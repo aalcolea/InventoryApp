@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
@@ -71,26 +72,50 @@ class PinEntryScreenState extends State<PinEntryScreen> with SingleTickerProvide
     aniController.dispose();
     super.dispose();
   }
+  Future<bool> isRunningOnSimulator() async {
+    if (!Platform.isIOS) return false;
 
+    try {
+      ProcessResult result = await Process.run('uname', ['-m']);
+      String output = result.stdout.toString().trim();
+      print("Resultado de uname -m: $output");
+
+      return output == "x86_64" || output == "i386";
+    } catch (e) {
+      print("Error detectando simulador: $e");
+      return false;
+    }
+  }
+  Future<String?> getFCMToken() async {
+    bool isSimulator = await isRunningOnSimulator();
+
+    if (isSimulator) {
+      print('Ejecutando en un simulador de iOS: No se obtiene token FCM');
+      return 'simulatorToken';
+    }
+
+    try {
+      String? fcmToken = await FirebaseMessaging.instance.getToken();
+      print('FCM Token obtenido: $fcmToken');
+      return fcmToken;
+    } catch (e) {
+      print('Error al obtener el token FCM: $e');
+      return null;
+    }
+  }
   void authenticate() async {
     try {
       String jsonBody;
-      if (widget.userId == 3) {
-        jsonBody = json.encode({
-          'email': 'dulce@test.com',
-          'password': enteredPin,
-          'fcm_token': await FirebaseMessaging.instance.getToken(),
-        });
-      } else {
-        jsonBody = json.encode({
-          'email': 'doctor${widget.userId}@test.com',
-          'password': enteredPin,
-          'fcm_token': await FirebaseMessaging.instance.getToken(),
-        });
-      }
+      print('usuario${widget.userId}@test.com');
+      String? fcmToken = await getFCMToken();
+      jsonBody = json.encode({
+        'email': widget.userId == 3 ? 'usernormal@test.com' : 'usuario${widget.userId}@test.com',
+        'password': enteredPin,
+        'fcm_token': fcmToken,
+      });
 
       var response = await http.post(
-        Uri.parse('https://beauteapp-dd0175830cc2.herokuapp.com/api/login'),
+        Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonBody,
       );
@@ -100,19 +125,13 @@ class PinEntryScreenState extends State<PinEntryScreen> with SingleTickerProvide
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('jwt_token', data['token']);
         await prefs.setInt('user_id', data['user']['id']);
-        if(data['user']['id'] == 1 || data['user']['id'] == 2){
-          SessionManager.instance.isDoctor = true;
 
-        } else {
-          SessionManager.instance.isDoctor = false;
-        }
+        SessionManager.instance.isDoctor = (data['user']['id'] == 1 || data['user']['id'] == 2);
         SessionManager.instance.Nombre = data['user']['nombre'];
 
-        if(mounted){
+        if (mounted) {
           Navigator.of(context).pushAndRemoveUntil(
-            CupertinoPageRoute(
-              builder: (context) => adminInv(),
-            ),
+            CupertinoPageRoute(builder: (context) => adminInv()),
                 (Route<dynamic> route) => false,
           );
         }
@@ -121,15 +140,15 @@ class PinEntryScreenState extends State<PinEntryScreen> with SingleTickerProvide
           aniController.forward();
           aniController.addListener(() {
             if (aniController.status == AnimationStatus.completed) {
-              aniController.reverse().then((_){
-                count = count + 1;
-                if(count < 7){
+              aniController.reverse().then((_) {
+                count++;
+                if (count < 7) {
                   aniController.forward();
                 } else {
                   setState(() {
                     aniController.stop();
                     aniController.reset();
-                    count =0;
+                    count = 0;
                   });
                 }
               });
@@ -137,18 +156,21 @@ class PinEntryScreenState extends State<PinEntryScreen> with SingleTickerProvide
           });
           enteredPin = '';
         });
-
       }
     } catch (e) {
       print("Error $e");
     }
   }
+
   Future<void> logout(BuildContext context) async {
     await storage.delete(key: 'jwt_token');
+    String? fcmToken = await getFCMToken();
+    print('Token FCM antes de cerrar sesión: $fcmToken');
+
     String? token = await storage.read(key: 'jwt_token');
     if (token != null) {
       var response = await http.post(
-        Uri.parse('https://beauteapp-dd0175830cc2.herokuapp.com/api/logout'),
+        Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/logout'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -165,25 +187,30 @@ class PinEntryScreenState extends State<PinEntryScreen> with SingleTickerProvide
     Navigator.of(context).pushNamedAndRemoveUntil('/login', (Route<dynamic> route) => false);
   }
 
+
   Future<void> refreshToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');
-    if(token != null){
+    if (token != null) {
       var response = await http.post(
-        Uri.parse('https://beauteapp-dd0175830cc2.herokuapp.com/api/refresh'),
+        Uri.parse('https://inventorioapp-ea98995372d9.herokuapp.com/api/refresh'),
         headers: {
           'Authorization': 'Bearer $token',
         },
       );
+
       if (response.statusCode == 200) {
         var data = json.decode(response.body);
         await prefs.setString('jwt_token', data['token']);
         print("Token actualizado");
+        String? fcmToken = await getFCMToken();
+        print("Nuevo Token FCM: $fcmToken");
       } else {
         print('Error al refrescar el token');
       }
     }
   }
+
   Future<void> handleToken() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('jwt_token');

@@ -307,6 +307,8 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
     screenWidth = mediaQuery.size.width;
     screenHeight = mediaQuery.size.height;
     orientation = mediaQuery.orientation;
+    print('scw $screenWidth');
+    print('sch $screenHeight');
   }
 
 
@@ -374,51 +376,6 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     deviceInfo = DeviceInfo();
   }
-
-
-/*  @override
-  void initState() {
-    super.initState();
-    keyboardVisibilityManager = KeyboardVisibilityManager();
-    bool isUsingTextField = false;
-    keyboardVisibilityManager.keyboardVisibilitySubscription =
-        keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
-          if (visible) {
-            if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
-                FocusManager.instance.primaryFocus?.context?.widget is TextFormField) {
-              isUsingTextField = true;
-              scannerService.focusNode.unfocus();
-            }
-          } else {
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted && !isUsingTextField) {
-                scannerService.focusNode.requestFocus();
-              }
-            });
-          }
-        });
-    Future.microtask(() {
-      if (mounted) {
-        scannerService.initialize(context, handleBarcode);
-        scannerService.focusNode.addListener(() {
-          if (!isUsingTextField && mounted) {
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (mounted && !scannerService.focusNode.hasFocus && !keyboardVisibilityManager.keyboardVisibilityController.isVisible) {
-                scannerService.focusNode.requestFocus();
-              }
-            });
-          }
-        });
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            scannerService.focusNode.requestFocus();
-          }
-        });
-      }
-    });
-    WidgetsBinding.instance.addObserver(this);
-    deviceInfo = DeviceInfo();
-  }*/
 
   void _onCancelConfirm(bool cancelConfirm) {
     setState(() {
@@ -785,12 +742,12 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
                           child: BackdropFilter(
                               filter: ImageFilter.blur(sigmaX: 4.0, sigmaY: 4.0),
                               child: GestureDetector(
-                                  onTap: () {
+                                  /*onTap: () {
                                     setState(() {
                                       _showBlurr = false;
                                       changeBlurr();
                                     });
-                                  },
+                                  },*/
                                   child: Container(
                                     alignment: Alignment.center,
                                     width: double.infinity,

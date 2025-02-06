@@ -56,7 +56,7 @@ class BarcodeScannerService {
       _lifecycleObserver  = _ActivityLifecycleObserver(
           onResume: () {
             // Dar tiempo al sistema para estabilizarse
-            Future.delayed(const Duration(milliseconds: 500), () {
+            Future.delayed(const Duration(milliseconds: 700), () {
               if (!focusNode.hasFocus && focusNode.canRequestFocus) {
                 focusNode.requestFocus();
               }

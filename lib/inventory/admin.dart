@@ -307,8 +307,6 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
     screenWidth = mediaQuery.size.width;
     screenHeight = mediaQuery.size.height;
     orientation = mediaQuery.orientation;
-    print('scw $screenWidth');
-    print('sch $screenHeight');
   }
 
 
@@ -330,7 +328,6 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
     keyboardVisibilityManager.keyboardVisibilitySubscription =
         keyboardVisibilityManager.keyboardVisibilityController.onChange.listen((bool visible) {
           if (!mounted) return;
-
           setState(() {
             if (visible) {
               if (FocusManager.instance.primaryFocus?.context?.widget is TextField ||
@@ -340,10 +337,10 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
               }
             } else {
               Future.delayed(const Duration(milliseconds: 500), () {
-                if (mounted && !isUsingTextField) {
+                if (mounted && !isUsingTextField && scannerService.focusNode.hasListeners) {
                   scannerService.focusNode.requestFocus();
                 }
-                isUsingTextField = false; // Resetear el flag cuando el teclado se oculta
+                isUsingTextField = false;
               });
             }
           });
@@ -351,25 +348,21 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
 
     Future.microtask(() {
       if (!mounted) return;
-
       scannerService.initialize(context, handleBarcode);
-
       if (mounted) {
         scannerService.focusNode.addListener(() {
           if (!isUsingTextField && mounted && !keyboardVisibilityManager.keyboardVisibilityController.isVisible) {
             Future.delayed(const Duration(milliseconds: 300), () {
-              if (mounted && !scannerService.focusNode.hasFocus) {
+              if (mounted && !scannerService.focusNode.hasFocus &&
+                  !keyboardVisibilityManager.keyboardVisibilityController.isVisible) {
                 scannerService.focusNode.requestFocus();
               }
             });
           }
         });
       }
-
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          scannerService.focusNode.requestFocus();
-        }
+        if (mounted) scannerService.focusNode.requestFocus();
       });
     });
 

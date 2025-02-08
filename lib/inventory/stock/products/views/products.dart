@@ -288,8 +288,7 @@ class ProductsState extends State<Products> with TickerProviderStateMixin, Widge
       body: Stack(
         children: [
           Container(
-            padding: !isTablet ? EdgeInsets.only(
-                top: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.width * 0.02) :
+            padding: !isTablet ? EdgeInsets.zero :
             orientation == Orientation.portrait ? EdgeInsets.only(
                 top: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.width * 0.02) :
             EdgeInsets.only(
@@ -333,247 +332,267 @@ class ProductsState extends State<Products> with TickerProviderStateMixin, Widge
                   )
                 ),
                 Expanded(
-                  child: ListView.builder(
-                      padding: orientation == Orientation.portrait ? EdgeInsets.only(
-                        bottom: MediaQuery.of(context).size.width * 0.01,
-                        left: MediaQuery.of(context).size.width * 0.02,
-                        right: MediaQuery.of(context).size.width * 0.02
-                      ) : EdgeInsets.only(
-                        bottom: MediaQuery.of(context).size.height * 0.01,
-                        left: MediaQuery.of(context).size.height * 0.02,
-                        right: MediaQuery.of(context).size.height * 0.02
-                      ),
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: products_global.length,
-                      itemBuilder: (context, index) {
-                        return InkWell(
-                          key: productKeys[index],
-                          onTap: (){
-                            Navigator.push(context,
-                              CupertinoPageRoute(
-                                builder: (context) => ProductDetails(
-                                  idProduct: products_global[index]['id'],
-                                  nameProd: products_global[index]['product'] ?? '',
-                                  descriptionProd: products_global[index]['descripcion'] ?? '',
-                                  catId: products_global[index]['catId'],
-                                  barCode: products_global[index]['barCod'] ?? '',
-                                  stock: products_global[index]['cant_cart'] == null ? 0 : products_global[index]['cant_cart']['cantidad'],
-                                  precio: products_global[index]['price'] ?? '',
-                                  precioRetail: products_global[index]['precioRet'] ?? '0',
-                                  onProductModified: () async {
-                                    await refreshProducts();
-                                    removeOverlay();
-                                    setState(() {});
-                                  },
-                                  onShowBlur: widget.onShowBlur,
-                                  onProductDeleted: () async {  await refreshProducts(); removeOverlay();},
-                                ),
-                              ),
-                            );
-                          },
-                          onLongPress: () {
-                            if (index >= 0 && index < products_global.length) {
-                              setState(() {
-                                showBlurr = true;
-                                showProductOptions(index);
-                              });
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      var widthItem1 = constraints.maxWidth * 0.5;
+                      var widthItem2 = constraints.maxWidth * 0.7;
+                      if(isTablet){
+                        if(orientation == Orientation.portrait){
+                          widthItem1 = constraints.maxWidth * 0.352;
+                          widthItem1 = constraints.maxWidth * 0.352;
+                        }else{
+                          widthItem1 = constraints.maxWidth * 0.352;
+                          widthItem1 = constraints.maxWidth * 0.352;
+                        }
+                      }
+                      return ListView.builder(
+                          padding: orientation == Orientation.portrait ? EdgeInsets.only(
+                              bottom: MediaQuery.of(context).size.width * 0.01,
+                              left: MediaQuery.of(context).size.width * 0.02,
+                              right: MediaQuery.of(context).size.width * 0.02
+                          ) : EdgeInsets.only(
+                              bottom: MediaQuery.of(context).size.height * 0.01,
+                              left: MediaQuery.of(context).size.height * 0.02,
+                              right: MediaQuery.of(context).size.height * 0.02
+                          ),
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: products_global.length,
+                          itemBuilder: (context, index) {
+                            return InkWell(
+                              key: productKeys[index],
+                              onTap: (){
+                                Navigator.push(context,
+                                  CupertinoPageRoute(
+                                    builder: (context) => ProductDetails(
+                                      idProduct: products_global[index]['id'],
+                                      nameProd: products_global[index]['product'] ?? '',
+                                      descriptionProd: products_global[index]['descripcion'] ?? '',
+                                      catId: products_global[index]['catId'],
+                                      barCode: products_global[index]['barCod'] ?? '',
+                                      stock: products_global[index]['cant_cart'] == null ? 0 : products_global[index]['cant_cart']['cantidad'],
+                                      precio: products_global[index]['price'] ?? '',
+                                      precioRetail: products_global[index]['precioRet'] ?? '0',
+                                      onProductModified: () async {
+                                        await refreshProducts();
+                                        removeOverlay();
+                                        setState(() {});
+                                      },
+                                      onShowBlur: widget.onShowBlur,
+                                      onProductDeleted: () async {  await refreshProducts(); removeOverlay();},
+                                    ),
+                                  ),
+                                );
+                              },
+                              onLongPress: () {
+                                if (index >= 0 && index < products_global.length) {
+                                  setState(() {
+                                    showBlurr = true;
+                                    showProductOptions(index);
+                                  });
 
-                            } else {
-                              print("Invalid product index: $index");
-                            }
-                          },
-                          child: Column(
-                            children: [
-                              ListTile(
-                                contentPadding: orientation == Orientation.portrait ? EdgeInsets.symmetric(
-                                    vertical: MediaQuery.of(context).size.width * 0.0075,
-                                    horizontal: MediaQuery.of(context).size.width * 0.0247) :
-                                EdgeInsets.symmetric(
-                                    vertical: MediaQuery.of(context).size.height * 0.0075,
-                                    horizontal: MediaQuery.of(context).size.height * 0.0247),
-                                title: Row(
-                                  children: [
-                                    Column(
-                                      mainAxisAlignment: MainAxisAlignment.start,
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                } else {
+                                  print("Invalid product index: $index");
+                                }
+                              },
+                              child: Column(
+                                children: [
+                                  ListTile(
+                                    contentPadding: orientation == Orientation.portrait ? EdgeInsets.symmetric(
+                                        vertical: MediaQuery.of(context).size.width * 0.0075,
+                                        horizontal: MediaQuery.of(context).size.width * 0.0247) :
+                                    EdgeInsets.symmetric(
+                                        vertical: MediaQuery.of(context).size.height * 0.0075,
+                                        horizontal: MediaQuery.of(context).size.height * 0.0247),
+                                    title: Row(
                                       children: [
-                                        Text(
-                                          "${products_global[index]['product']}",
-                                          style: TextStyle(
-                                            color: AppColors.primaryColor,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
-                                            MediaQuery.of(context).size.height * 0.045,
-                                          ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "Cant.: ",
-                                              style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5),
-                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
-                                                MediaQuery.of(context).size.height * 0.04,),
-                                            ),
-                                            Text(
-                                              products_global[index]['cant_cart']['cantidad'] == null ? 'Agotado' : products_global[index]['cant_cart']['cantidad'] == 0 ? 'Agotado' : '${products_global[index]['cant_cart']['cantidad']}',
-                                              style: TextStyle(
-                                                  color: AppColors.primaryColor,
-                                                  fontWeight: FontWeight.bold,
-                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
-                                                MediaQuery.of(context).size.height * 0.04,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "Precio: ",
-                                              style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5),
-                                                fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
-                                                MediaQuery.of(context).size.height * 0.04,),
-                                            ),
-                                            Container(
-                                              padding: const EdgeInsets.only(right: 10),
-                                              child: Text(
-                                                "\$${products_global[index]['price']} MXN",
+                                        SizedBox(
+                                          width: tapedIndices.contains(index) ? widthItem1 : widthItem2,
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                "${products_global[index]['product']}",
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
                                                 style: TextStyle(
                                                   color: AppColors.primaryColor,
                                                   fontWeight: FontWeight.bold,
-                                                    fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
-                                                    MediaQuery.of(context).size.height * 0.04,
+                                                  fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.04 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                  MediaQuery.of(context).size.height * 0.045,
                                                 ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    AnimatedContainer(
-                                        alignment: Alignment.bottomRight,
-                                        duration: const Duration(milliseconds: 225),
-                                        width: tapedIndices.contains(index) ? !isTablet ? MediaQuery.of(context).size.width * 0.3 :
-                                        orientation == Orientation.portrait ?MediaQuery.of(context).size.width * 0.26 : MediaQuery.of(context).size.height * 0.32 :
-                                        !isTablet ? MediaQuery.of(context).size.width * 0.13 :
-                                        orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.105 : MediaQuery.of(context).size.height * 0.125,
-                                        /*width: tapedIndices.contains(index) ? MediaQuery.of(context).size.width * 0.3 : MediaQuery.of(context).size.width * 0.13,*/
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10),
-                                          color: AppColors.primaryColor,
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.end,
-                                          children: [
-                                            AnimatedBuilder(animation: aniControllers[index],
-                                                child: Visibility(
-                                                  visible:  tapedIndices.contains(index),
-                                                  child: ElevatedButton(
-                                                    style: ElevatedButton.styleFrom(
-                                                        minimumSize: const Size(0, 0),
-                                                        backgroundColor: Colors.transparent,
-                                                        padding: EdgeInsets.symmetric(
-                                                          horizontal: MediaQuery.of(context).size.width * 0.015,
-                                                          vertical: MediaQuery.of(context).size.width * 0.015,
-                                                        ),
-                                                        shadowColor: Colors.transparent
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    "Cant.: ",
+                                                    style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5),
+                                                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                      MediaQuery.of(context).size.height * 0.04,),
+                                                  ),
+                                                  Text(
+                                                    products_global[index]['cant_cart']['cantidad'] == null ? 'Agotado' : products_global[index]['cant_cart']['cantidad'] == 0 ? 'Agotado' : '${products_global[index]['cant_cart']['cantidad']}',
+                                                    style: TextStyle(
+                                                      color: AppColors.primaryColor,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                      MediaQuery.of(context).size.height * 0.04,
                                                     ),
-                                                    onPressed: () {
-                                                      cartProvider.decrementProductInCart(products_global[index]['product_id']);
-                                                      setState(() {
-                                                        bool action = false;
-                                                        itemCount(index, action);
-                                                      });
-                                                    },
-                                                    child: Icon(
-                                                      CupertinoIcons.minus,
-                                                      color: AppColors.whiteColor,
-                                                      size: !isTablet ? MediaQuery.of(context).size.width * 0.07 : orientation == Orientation.portrait ?
-                                                      MediaQuery.of(context).size.width * 0.07 :  MediaQuery.of(context).size.height * 0.07,
-                                                    ),
-                                                  ),),
-                                                builder: (context, minusMove){
-                                                  movLeft = Tween(begin: 0.0, end: MediaQuery.of(context).size.width * 0.023).animate(aniControllers[index]);
-                                                  return Transform.translate(offset: Offset(-movLeft.value, 0), child: minusMove);
-                                                }),
-                                            AnimatedBuilder(
-                                                animation: aniControllers[index],
-                                                child: Visibility(
-                                                    visible: tapedIndices.contains(index),
-                                                    child: Container(
-                                                      decoration: const BoxDecoration(
+                                                  ),
+                                                ],
+                                              ),
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    "Precio: ",
+                                                    style: TextStyle(color: AppColors.primaryColor.withOpacity(0.5),
+                                                      fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                      MediaQuery.of(context).size.height * 0.04,),
+                                                  ),
+                                                  Container(
+                                                    padding: const EdgeInsets.only(right: 10),
+                                                    child: Text(
+                                                      "\$${products_global[index]['price']} MXN",
+                                                      style: TextStyle(
                                                         color: AppColors.primaryColor,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: !isTablet ? MediaQuery.of(context).size.width * 0.035 : orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.04 :
+                                                        MediaQuery.of(context).size.height * 0.04,
                                                       ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        AnimatedContainer(
+                                            alignment: Alignment.bottomRight,
+                                            duration: const Duration(milliseconds: 225),
+                                            width: tapedIndices.contains(index) ? !isTablet ? MediaQuery.of(context).size.width * 0.3 :
+                                            orientation == Orientation.portrait ?MediaQuery.of(context).size.width * 0.26 : MediaQuery.of(context).size.height * 0.32 :
+                                            !isTablet ? MediaQuery.of(context).size.width * 0.13 :
+                                            orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.105 : MediaQuery.of(context).size.height * 0.125,
+                                            /*width: tapedIndices.contains(index) ? MediaQuery.of(context).size.width * 0.3 : MediaQuery.of(context).size.width * 0.13,*/
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: AppColors.primaryColor,
+                                            ),
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                AnimatedBuilder(animation: aniControllers[index],
+                                                    child: Visibility(
+                                                      visible: tapedIndices.contains(index),
+                                                      child: ElevatedButton(
+                                                        style: ElevatedButton.styleFrom(
+                                                            minimumSize: const Size(0, 0),
+                                                            backgroundColor: Colors.transparent,
+                                                            padding: EdgeInsets.symmetric(
+                                                              horizontal: MediaQuery.of(context).size.width * 0.015,
+                                                              vertical: MediaQuery.of(context).size.width * 0.015,
+                                                            ),
+                                                            shadowColor: Colors.transparent
+                                                        ),
+                                                        onPressed: () {
+                                                          cartProvider.decrementProductInCart(products_global[index]['product_id']);
+                                                          setState(() {
+                                                            bool action = false;
+                                                            itemCount(index, action);
+                                                          });
+                                                        },
+                                                        child: Icon(
+                                                          CupertinoIcons.minus,
+                                                          color: AppColors.whiteColor,
+                                                          size: !isTablet ? MediaQuery.of(context).size.width * 0.07 : orientation == Orientation.portrait ?
+                                                          MediaQuery.of(context).size.width * 0.07 :  MediaQuery.of(context).size.height * 0.07,
+                                                        ),
+                                                      ),),
+                                                    builder: (context, minusMove){
+                                                      movLeft = Tween(begin: 0.0, end: MediaQuery.of(context).size.width * 0.023).animate(aniControllers[index]);
+                                                      return Transform.translate(offset: Offset(-movLeft.value, 0), child: minusMove);
+                                                    }),
+                                                AnimatedBuilder(
+                                                    animation: aniControllers[index],
+                                                    child: Visibility(
+                                                        visible: tapedIndices.contains(index),
+                                                        child: Container(
+                                                          decoration: const BoxDecoration(
+                                                            color: AppColors.primaryColor,
+                                                          ),
+                                                          padding: EdgeInsets.symmetric(
+                                                            horizontal: MediaQuery.of(context).size.width * 0.0,
+                                                            vertical: MediaQuery.of(context).size.width * 0.015,
+                                                          ),
+                                                          child: Text(
+                                                            textAlign: TextAlign.center,
+                                                            '${cantHelper[index]}',
+                                                            style: TextStyle(
+                                                                color: AppColors.whiteColor,
+                                                                fontSize: MediaQuery.of(context).size.width * 0.05,
+                                                                fontWeight: FontWeight.bold),
+                                                          ),
+                                                        )),
+                                                    builder: (context, countMov){
+                                                      movLeftCount = Tween(begin: 0.0, end: MediaQuery.of(context).size.width * 0.012).animate(aniControllers[index]);
+                                                      return Transform.translate(offset: Offset(-movLeftCount.value, 0), child: countMov);
+                                                    }),
+                                                ///btn mas
+                                                ElevatedButton(
+                                                  style: ElevatedButton.styleFrom(
+                                                      minimumSize: const Size(0, 0),
+                                                      backgroundColor: Colors.transparent,
                                                       padding: EdgeInsets.symmetric(
-                                                        horizontal: MediaQuery.of(context).size.width * 0.0,
+                                                        horizontal: MediaQuery.of(context).size.width * 0.015,
                                                         vertical: MediaQuery.of(context).size.width * 0.015,
                                                       ),
-                                                      child: Text(
-                                                        textAlign: TextAlign.center,
-                                                        '${cantHelper[index]}',
-                                                        style: TextStyle(
-                                                            color: AppColors.whiteColor,
-                                                            fontSize: MediaQuery.of(context).size.width * 0.05,
-                                                            fontWeight: FontWeight.bold),
-                                                      ),
-                                                    )),
-                                                builder: (context, countMov){
-                                                  movLeftCount = Tween(begin: 0.0, end: MediaQuery.of(context).size.width * 0.012).animate(aniControllers[index]);
-                                                  return Transform.translate(offset: Offset(-movLeftCount.value, 0), child: countMov);
-                                                }),
-                                            ///btn mas
-                                            ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                  minimumSize: const Size(0, 0),
-                                                  backgroundColor: Colors.transparent,
-                                                  padding: EdgeInsets.symmetric(
-                                                    horizontal: MediaQuery.of(context).size.width * 0.015,
-                                                    vertical: MediaQuery.of(context).size.width * 0.015,
+                                                      shadowColor: Colors.transparent
                                                   ),
-                                                  shadowColor: Colors.transparent
-                                              ),
-                                              onPressed: (products_global[index]['cant_cart']?['cantidad'] ?? 0) > cartProvider.getProductCount(products_global[index]['product_id'])
-                                                  ? () {
-                                                cartProvider.addProductToCart(products_global[index]['product_id']);
-                                                setState(() {
-                                                  bool action = true;
-                                                  tapedIndex = index;
-                                                  if (!tapedIndices.contains(index)) {
-                                                    tapedIndices.add(index);
-                                                  }
-                                                  itemCount(index, action);
-                                                  aniControllers[index].forward();
-                                                });
-                                              } : () {
-                                                showOverlay(
-                                                    context,
-                                                    const CustomToast(
-                                                      message: 'No puedes agregar más de lo disponible en stock',
-                                                    ));
-                                              },
-                                              child: Icon(
-                                                CupertinoIcons.add,
-                                                color: AppColors.whiteColor,
-                                                size: !isTablet ? MediaQuery.of(context).size.width * 0.07 : orientation == Orientation.portrait ?
-                                                MediaQuery.of(context).size.width * 0.07 :  MediaQuery.of(context).size.height * 0.07,
-                                              ),
-                                            ),
-                                          ],
+                                                  onPressed: (products_global[index]['cant_cart']?['cantidad'] ?? 0) > cartProvider.getProductCount(products_global[index]['product_id'])
+                                                      ? () {
+                                                    cartProvider.addProductToCart(products_global[index]['product_id']);
+                                                    setState(() {
+                                                      bool action = true;
+                                                      tapedIndex = index;
+                                                      if (!tapedIndices.contains(index)) {
+                                                        tapedIndices.add(index);
+                                                      }
+                                                      itemCount(index, action);
+                                                      aniControllers[index].forward();
+                                                    });
+                                                  } : () {
+                                                    showOverlay(
+                                                        context,
+                                                        const CustomToast(
+                                                          message: 'No puedes agregar más de lo disponible en stock',
+                                                        ));
+                                                  },
+                                                  child: Icon(
+                                                    CupertinoIcons.add,
+                                                    color: AppColors.whiteColor,
+                                                    size: !isTablet ? MediaQuery.of(context).size.width * 0.07 : orientation == Orientation.portrait ?
+                                                    MediaQuery.of(context).size.width * 0.07 :  MediaQuery.of(context).size.height * 0.07,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
                                         )
-                                    )
-                                  ],
-                                ),),
-                              Divider(
-                                indent: MediaQuery.of(context).size.width * 0.05,
-                                endIndent: MediaQuery.of(context).size.width * 0.05,
-                                color: AppColors.primaryColor.withOpacity(0.1),
-                                thickness: MediaQuery.of(context).size.width * 0.005,
-                              )
-                            ],
-                          ),
-                        );
-                      }
-                  ),
+                                      ],
+                                    ),),
+                                  Divider(
+                                    indent: MediaQuery.of(context).size.width * 0.05,
+                                    endIndent: MediaQuery.of(context).size.width * 0.05,
+                                    color: AppColors.primaryColor.withOpacity(0.1),
+                                    thickness: MediaQuery.of(context).size.width * 0.005,
+                                  )
+                                ],
+                              ),
+                            );
+                          }
+                      );
+                    },
+                  )
                 ),
               ],
             ),

@@ -276,6 +276,8 @@ class _CartState extends State<Cart> {
                                             children: [
                                               Text(
                                                 '${cartProvider.cart[index]['product']}',
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
                                                 style: !isTablet ? TextStyle(
                                                   color: AppColors.primaryColor,
                                                   fontSize: MediaQuery.of(context).size.width * 0.05,
@@ -285,7 +287,7 @@ class _CartState extends State<Cart> {
                                                 ),
                                               ),
                                               Text(
-                                                'Codigo ${cartProvider.cart[index]['product_id']}',
+                                                'Código ${cartProvider.cart[index]['product_id']}',
                                                 style: !isTablet ? TextStyle(
                                                     color: AppColors.primaryColor.withOpacity(0.3),
                                                     fontSize: MediaQuery.of(context).size.width * 0.04

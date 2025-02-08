@@ -464,7 +464,7 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
                         MediaQuery.of(context).size.width * 0.01 : MediaQuery.of(context).size.height * 0.01),
                         color: AppColors.bgColor,
                         padding: EdgeInsets.only(
-                            top: !deviceInfo.isTablet ? MediaQuery.of(context).size.height * 0.04 : orientation == Orientation.portrait ?
+                            top: !deviceInfo.isTablet ? MediaQuery.of(context).size.height * 0.06 : orientation == Orientation.portrait ?
                             MediaQuery.of(context).size.width * 0.035 : MediaQuery.of(context).size.height * 0.035),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
@@ -473,12 +473,13 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
                               padding: EdgeInsets.only(
                                 left: !deviceInfo.isTablet ? MediaQuery.of(context).size.width * 0.03 : orientation == Orientation.portrait ?
                                 MediaQuery.of(context).size.width * 0.03 : MediaQuery.of(context).size.width * 0.03,
+                                bottom: MediaQuery.of(context).size.width * 0.01
                               ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         _selectedScreen == 1
@@ -498,6 +499,16 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
+                                      Padding(
+                                        padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.005, top: 0),
+                                        child: Text(
+                                          'v1.1.0',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              color: AppColors.blackColor.withOpacity(0.3)
+                                          ),
+                                        ),
+                                      )
                                     ],
                                   ),
                                   Row(
@@ -568,7 +579,7 @@ class _adminInvState extends State<adminInv> with WidgetsBindingObserver {
                                 children: [
                                   Expanded(
                                     child: Padding(
-                                      padding: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.02, left: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.width * 0.025),
+                                      padding: EdgeInsets.only(right: MediaQuery.of(context).size.width * 0.02, left: MediaQuery.of(context).size.width * 0.02, bottom: MediaQuery.of(context).size.width * 0.01),
                                       child: Container(
                                         color: Colors.transparent,
                                         height: showScaner ? MediaQuery.of(context).size.width * 0.3 : 40,//37

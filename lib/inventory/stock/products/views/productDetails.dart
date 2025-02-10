@@ -334,7 +334,7 @@ class _ProductDetailsState extends State<ProductDetails> with WidgetsBindingObse
                                   right: MediaQuery.of(context).size.width * 0.03),
                               child: TextProdField(
                                 inputFormatters: [
-                                  RegEx(type: InputFormatterType.alphanumeric),
+                                  RegEx(type: InputFormatterType.namesymbols),
                                 ],
                                 controller: nameController,
                                 enabled: editProd,

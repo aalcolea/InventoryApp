@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-enum InputFormatterType { alphanumeric, name, email, numeric }
+enum InputFormatterType { alphanumeric, name, email, numeric, namesymbols }
 
 class RegEx extends TextInputFormatter {
   final InputFormatterType type;
@@ -56,6 +56,20 @@ class RegEx extends TextInputFormatter {
         return FilteringTextInputFormatter.allow(
           RegExp(r'[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ0-9\s]'),
         ).formatEditUpdate(oldValue, newValue);
+
+      case InputFormatterType.namesymbols:
+        if (oldValue.text.endsWith(' ') &&
+            !newValue.text.endsWith(' ') &&
+            newValue.text.length == oldValue.text.length - 1 &&
+            oldValue.text.length > 1) {
+          return newValue;
+      }
+        final formatter = FilteringTextInputFormatter.allow(
+          RegExp(r"[a-zA-ZñÑáéíóúÁÉÍÓÚüÜ0-9\s._\-&+,']"),
+      );
+
+        return formatter.formatEditUpdate(oldValue, newValue);
+
 
       case InputFormatterType.email:
       // Permitir borrar un espacio intermedio

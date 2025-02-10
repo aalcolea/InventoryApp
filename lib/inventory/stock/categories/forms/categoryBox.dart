@@ -45,8 +45,6 @@ class _CategoryBoxState extends State<CategoryBox> {
             'image': item['foto'],
           };
         }).where((item) => item['category'] != null && item['id'] != null).toList();
-        print('items $items');
-
         if (widget.selectedCatId != null) {
           categorySel = items.firstWhere(
                 (item) => item['id'] == widget.selectedCatId,

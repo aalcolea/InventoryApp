@@ -279,7 +279,7 @@ class _ProductFormState extends State<ProductForm> with WidgetsBindingObserver {
                            focusNode: nameFocus,
                            controller: nameController,
                            inputFormatters: [
-                             RegEx(type: InputFormatterType.alphanumeric),
+                             RegEx(type: InputFormatterType.namesymbols),
                            ],
                            text: 'Nombre del producto',
                            textStyle: const TextStyle(

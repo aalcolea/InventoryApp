@@ -41,6 +41,7 @@ class _CategoriesState extends State<Categories> {
   String categoryName = '';
   String? categoryImage;
   bool isLoading = false;
+  int pages = 1;
 
   void checkKeyboardVisibility() {
     keyboardVisibilitySubscription =
@@ -189,30 +190,38 @@ class _CategoriesState extends State<Categories> {
       print('Error al cargar los items $e');
     }
   }
-  Future<void> loadItems() async{
-    if (!hasMoreItems) return;
-    try{
-      List<Map<String, dynamic>> fetchedItems = await fetchItems(limit: limit, offset: offset);
-      setState(() {
-        isLoading = false;
-        // Only add new items that don't already exist in the items list
-        for (var newItem in fetchedItems) {
-          bool exists = items.any((item) => item['id'] == newItem['id']);
-          if (!exists) {
-            items.add(newItem);
-          }
-        }
 
-        if (fetchedItems.length < limit) {
-          hasMoreItems = false; // No more items to load
-        }
-        offset += limit;
-      });
-      _ensureAddCatAtTheEnd();
-      print(offset);
-    }catch(e){
-      print('Error al cargar mas productos $e');
-    }
+  Future<void> loadItems() async{
+    offset = limit;
+    limit = !isTablet ? 6 : orientation == Orientation.portrait ? 4 : 9;
+    if (!hasMoreItems) {return;} else {
+      try{
+        List<Map<String, dynamic>> fetchedItems = await fetchItems(limit: limit*pages, offset: offset);
+        setState(() {
+          isLoading = false;
+          // Only add new items that don't already exist in the items list
+          for (var newItem in fetchedItems) {
+            bool exists = items.any((item) => item['id'] == newItem['id']);
+            if (!exists) {
+              items.add(newItem);
+            }
+          }
+
+          print('limit now $limit');
+          print(items.length);
+          if (fetchedItems.length % limit != 0) {
+            hasMoreItems = true; // No more items to load
+          };
+          print(hasMoreItems);
+          offset += limit;
+          pages++;
+        });
+        _ensureAddCatAtTheEnd();
+        print('hola jeje $offset');
+      }catch(e){
+        print('Error al cargar mas productos $e');
+      }
+    };
   }
 
   void _ensureAddCatAtTheEnd() {
@@ -228,8 +237,10 @@ class _CategoriesState extends State<Categories> {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchItems({limit, int offset = 0}) async{//en vez de 9 va un 6 originalmente
+  Future<List<Map<String, dynamic>>> fetchItems({limit, offset}) async{//en vez de 9 va un 6 originalmente
     final response = await http.get(Uri.parse(baseURL + '?limit=$limit&offset=$offset'));
+    print('limitttt $limit');
+    print('offset $offset');
     if(response.statusCode == 200){
       final List<dynamic> data = json.decode(response.body)['data'];
       return data.map((item){
@@ -277,261 +288,262 @@ class _CategoriesState extends State<Categories> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Expanded(
-            child: SizedBox(
-              //height: 580,
-              ///ENVOLVER EN NOTIFICATION DECIA GPT, AUN EN PRUEBAS
-              child: NotificationListener<ScrollNotification>(
-                onNotification: (ScrollNotification scrollInfo) {
-                  if (scrollInfo is ScrollEndNotification && hasMoreItems && scrollInfo.metrics.extentAfter == 0) {
-                    loadItems();
-                  }
-                  return true;
-                },
-                child: PageView.builder(
-                    scrollDirection: orientation == Orientation.landscape ? Axis.horizontal : Axis.vertical,
-                    itemCount: (items.length / itemsPerPage).ceil(),
-                    itemBuilder: (context, pageIndex) {
-                      int startIndex = pageIndex * itemsPerPage;
-                      int endIndex = startIndex + itemsPerPage;
-                      if (endIndex > items.length) {
-                        endIndex = items.length;
-                      }
-                      var currentPageItems = items.sublist(startIndex, endIndex);
-                      return GridView.builder(
-                        physics: const NeverScrollableScrollPhysics(),
-                        padding: orientation == Orientation.portrait ?  EdgeInsets.only(
-                          top: MediaQuery.of(context).size.width * 0.02,
-                          bottom: MediaQuery.of(context).size.width * 0.02,
-                          left: MediaQuery.of(context).size.width * 0.01,
-                          right: MediaQuery.of(context).size.width * 0.01,
-                        ) : EdgeInsets.only(
-                          top: MediaQuery.of(context).size.width * 0.02,
-                          bottom: MediaQuery.of(context).size.height * 0.02,
-                          left: MediaQuery.of(context).size.height * 0.01,
-                          right: MediaQuery.of(context).size.height * 0.01,
-                        ),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: !isTablet ? 2 : orientation == Orientation.portrait ? 3 : 4,
-                        ),
-                        itemCount: currentPageItems.length,
-                        itemBuilder: (context, index) {
-                          var item = currentPageItems[index];
-                          return item['category'] == 'addCat' ?
-                          InkWell(
-                            onTap: () {
-                              if (isSelecting) {
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification scrollInfo) {
+                if (scrollInfo is ScrollEndNotification && hasMoreItems && scrollInfo.metrics.extentAfter == 0) {
+                  loadItems();
+                }
+                return true;
+              },
+              child: PageView.builder(
+                  scrollDirection: orientation == Orientation.landscape ? Axis.horizontal : Axis.vertical,
+                  itemCount: (items.length / itemsPerPage).ceil(),
+                  itemBuilder: (context, pageIndex) {
+                    int startIndex = pageIndex * itemsPerPage;
+                    int endIndex = startIndex + itemsPerPage;
+                    if (endIndex > items.length) {
+                      endIndex = items.length;
+                    }
+                    var currentPageItems = items.sublist(startIndex, endIndex);
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: orientation == Orientation.portrait ?  EdgeInsets.only(
+                        top: MediaQuery.of(context).size.width * 0.02,
+                        bottom: MediaQuery.of(context).size.width * 0.02,
+                        left: MediaQuery.of(context).size.width * 0.01,
+                        right: MediaQuery.of(context).size.width * 0.01,
+                      ) : EdgeInsets.only(
+                        top: MediaQuery.of(context).size.width * 0.02,
+                        bottom: MediaQuery.of(context).size.height * 0.02,
+                        left: MediaQuery.of(context).size.height * 0.01,
+                        right: MediaQuery.of(context).size.height * 0.01,
+                      ),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: !isTablet ? 2 : orientation == Orientation.portrait ? 3 : 4,
+                        childAspectRatio: 1,
+                        mainAxisSpacing: 10.0,
+                        crossAxisSpacing: 10.0,
+                      ),
+                      itemCount: currentPageItems.length,
+                      itemBuilder: (context, index) {
+                        var item = currentPageItems[index];
+                        return item['category'] == 'addCat' ?
+                        InkWell(
+                          onTap: () {
+                            if (isSelecting) {
 
+                            } else {
+                              pages = 1;
+                              widget.onShowBlur(true);
+                              showDialog(
+                                context: context,
+                                barrierColor: Colors.transparent,
+                                builder: (BuildContext context) {
+                                  return CategoryForm(
+                                      onLoad: (load) {
+                                        isLoading = load;
+                                      }
+                                  );
+                                },
+                              ).then((_){
+                                loadFirstItems();
+                                widget.onShowBlur(false);
+                              });
+                            }
+                          },
+                          child: Card(
+                            color: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            child: Padding(
+                              padding: orientation == Orientation.portrait ? EdgeInsets.only(
+                                left: MediaQuery.of(context).size.width * 0.02,
+                                right: MediaQuery.of(context).size.width * 0.02,
+                              ) : EdgeInsets.only(
+                                left: MediaQuery.of(context).size.height * 0.02,
+                                right: MediaQuery.of(context).size.height * 0.02,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: orientation == Orientation.portrait ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                      padding: const EdgeInsets.all(1),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.whiteColor,
+                                        borderRadius: BorderRadius.circular(10),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.blackColor.withOpacity(0.3),
+                                            offset: const Offset(4, 4),
+                                            blurRadius: 5,
+                                            spreadRadius: 0.1,
+                                          )
+                                        ],
+                                      ),
+                                      height: !isTablet ? MediaQuery.of(context).size.width * 0.35 : orientation == Orientation.portrait ?
+                                      MediaQuery.of(context).size.width * 0.2 : MediaQuery.of(context).size.height * 0.3,
+                                      width: MediaQuery.of(context).size.width * 0.5,
+                                      child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: Icon(
+                                            CupertinoIcons.add,
+                                            color: AppColors.primaryColor.withOpacity(0.3),
+                                            size: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.15 : MediaQuery.of(context).size.height * 0.15,
+                                          )
+                                      )
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                      "Nueva categoría",
+                                      style: TextStyle(
+                                        color: AppColors.primaryColor,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.height * 0.015 : MediaQuery.of(context).size.width * 0.014,
+                                      )
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ) : InkWell(
+                          onTap: () {
+                            setState(() {
+                              selectedCategoryId = item['id'];
+                              if (isSelecting) {
+                                if (selectedCategories.contains(item['id'].toString())) {
+                                  selectedCategories.remove(item['id'].toString());
+                                  if (selectedCategories.isEmpty) {
+                                    isSelecting = false;
+                                  }
+                                } else {
+                                  selectedCategories.add(item['id'].toString());
+                                }
                               } else {
-                                widget.onShowBlur(true);
-                                showDialog(
-                                  context: context,
-                                  barrierColor: Colors.transparent,
-                                  builder: (BuildContext context) {
-                                    return CategoryForm(
-                                        onLoad: (load) {
-                                          isLoading = load;
-                                        }
-                                    );
-                                  },
-                                ).then((_){
-                                  loadFirstItems();
-                                  widget.onShowBlur(false);
-                                });
+                                Navigator.of(context).push(
+                                  CupertinoPageRoute(
+                                    builder: (context) => Products(selectedCategory: item['category'].toString(), onBack: _clearSelectedCategory, selectedCategoryId: selectedCategoryId, onShowBlur: widget.onShowBlur,listenerblurr: widget.listenerblurr),
+                                  ),
+                                );
                               }
-                            },
-                            child: Card(
+                            });
+                          },
+                          onLongPress: () {
+                            toggleSelection(item['id'].toString());
+                            categoryName = item['category'];
+                            categoryImage = item['image'];
+                          },
+                          child: Card(
                               color: Colors.transparent,
                               shadowColor: Colors.transparent,
                               child: Padding(
-                                  padding: orientation == Orientation.portrait ? EdgeInsets.only(
+                                padding: orientation == Orientation.portrait ? EdgeInsets.only(
                                     left: MediaQuery.of(context).size.width * 0.02,
-                                    right: MediaQuery.of(context).size.width * 0.02,
-                                  ) : EdgeInsets.only(
+                                    right: MediaQuery.of(context).size.width * 0.02
+                                ) : EdgeInsets.only(
                                     left: MediaQuery.of(context).size.height * 0.02,
-                                    right: MediaQuery.of(context).size.height * 0.02,
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: orientation == Orientation.portrait ? MainAxisAlignment.start : MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                          padding: const EdgeInsets.all(1),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.whiteColor,
-                                            borderRadius: BorderRadius.circular(10),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: AppColors.blackColor.withOpacity(0.3),
-                                                offset: const Offset(4, 4),
-                                                blurRadius: 5,
-                                                spreadRadius: 0.1,
-                                              )
-                                            ],
-                                          ),
-                                          height: !isTablet ? MediaQuery.of(context).size.width * 0.35 : orientation == Orientation.portrait ?
-                                          MediaQuery.of(context).size.width * 0.2 : MediaQuery.of(context).size.height * 0.3,
-                                          width: MediaQuery.of(context).size.width * 0.5,
-                                          child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(10),
-                                              child: Icon(
-                                                CupertinoIcons.add,
-                                                color: AppColors.primaryColor.withOpacity(0.3),
-                                                size: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.15 : MediaQuery.of(context).size.height * 0.15,
-                                              )
-                                          )
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                          "Nueva categoría",
-                                          style: TextStyle(
-                                            color: AppColors.primaryColor,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.height * 0.015 : MediaQuery.of(context).size.width * 0.014,
-                                          )
-                                      ),
-                                    ],
-                                  ),
-                              ),
-                            ),
-                          ) : InkWell(
-                            onTap: () {
-                              setState(() {
-                                selectedCategoryId = item['id'];
-                                if (isSelecting) {
-                                  if (selectedCategories.contains(item['id'].toString())) {
-                                    selectedCategories.remove(item['id'].toString());
-                                    if (selectedCategories.isEmpty) {
-                                      isSelecting = false;
-                                    }
-                                  } else {
-                                    selectedCategories.add(item['id'].toString());
-                                  }
-                                } else {
-                                  Navigator.of(context).push(
-                                    CupertinoPageRoute(
-                                      builder: (context) => Products(selectedCategory: item['category'].toString(), onBack: _clearSelectedCategory, selectedCategoryId: selectedCategoryId, onShowBlur: widget.onShowBlur,listenerblurr: widget.listenerblurr),
-                                    ),
-                                  );
-                                }
-                              });
-                            },
-                            onLongPress: () {
-                              toggleSelection(item['id'].toString());
-                              categoryName = item['category'];
-                              categoryImage = item['image'];
-                            },
-                            child: Card(
-                                color: Colors.transparent,
-                                shadowColor: Colors.transparent,
-                                child: Padding(
-                                  padding: orientation == Orientation.portrait ? EdgeInsets.only(
-                                      left: MediaQuery.of(context).size.width * 0.02,
-                                      right: MediaQuery.of(context).size.width * 0.02
-                                  ) : EdgeInsets.only(
-                                      left: MediaQuery.of(context).size.height * 0.02,
-                                      right: MediaQuery.of(context).size.height * 0.02
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: orientation == Orientation.portrait ? MainAxisAlignment.start : MainAxisAlignment.center,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Container(
-                                          padding: const EdgeInsets.all(1),
-                                          decoration: BoxDecoration(
-                                            color: AppColors.whiteColor,
-                                            borderRadius: BorderRadius.circular(10),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: AppColors.blackColor.withOpacity(0.3),
-                                                offset: const Offset(4, 4),
-                                                blurRadius: 5,
-                                                spreadRadius: 0.1,
-                                              )
-                                            ],
-                                          ),
-                                          height: !isTablet ? MediaQuery.of(context).size.width * 0.35 : orientation == Orientation.portrait ?
-                                          MediaQuery.of(context).size.width * 0.2 : MediaQuery.of(context).size.height * 0.3,
-                                          width: MediaQuery.of(context).size.width * 0.5,
-                                          child: Stack(
-                                            fit: StackFit.expand,
-                                            alignment: Alignment.center,
-                                            children: [
-                                              ClipRRect(
-                                                borderRadius: BorderRadius.circular(10),
-                                                child: Image.network(
-                                                  item['image'],
-                                                  fit: BoxFit.fitWidth,
-                                                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                                                    if (loadingProgress == null) {
-                                                      return child;
-                                                    } else {
-                                                      return Center(
-                                                        child: CircularProgressIndicator(
-                                                          value: loadingProgress.expectedTotalBytes != null
-                                                              ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
-                                                              : null,
-                                                        ),
-                                                      );
-                                                    }
-                                                  },
-                                                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                                                    return Container(
-                                                        color: Colors.transparent,
-                                                        child: Column(
-                                                          mainAxisAlignment: MainAxisAlignment.center, // Centra los elementos verticalmente
-                                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                                          mainAxisSize: MainAxisSize.min,
-                                                          children: [
-                                                            Flexible(
-                                                              child: Image.asset('assets/imgLog/notFound.jpg',
-                                                                fit: BoxFit.fill),),
-                                                            const Text('Imagen no disponible'),
-                                                          ],
-                                                        )
-                                                    );
-                                                  },
-                                                ),
-                                              ),
-                                              Visibility(
-                                                visible: selectedCategories.contains(item['id'].toString()) ? true : false,
-                                                child: Container(
-                                                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.width * 0.01, left: MediaQuery.of(context).size.width * 0.01),
-                                                  alignment: Alignment.topLeft,
-                                                  decoration: BoxDecoration(
-                                                      color: AppColors.blackColor.withOpacity(0.3),
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      border: Border.all(
-                                                          color: AppColors.primaryColor,
-                                                          width: MediaQuery.of(context).size.width * 0.01
-                                                      )
-                                                  ),
-                                                  child: const Icon(
-                                                    CupertinoIcons.check_mark_circled,
-                                                    color: AppColors.primaryColor,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          )
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                            "${item['category']}",
-                                            style: TextStyle(
-                                              color: AppColors.primaryColor,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.height * 0.017 : MediaQuery.of(context).size.width * 0.016,
+                                    right: MediaQuery.of(context).size.height * 0.02
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: orientation == Orientation.portrait ? MainAxisAlignment.start : MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                        padding: const EdgeInsets.all(1),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.whiteColor,
+                                          borderRadius: BorderRadius.circular(10),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: AppColors.blackColor.withOpacity(0.3),
+                                              offset: const Offset(4, 4),
+                                              blurRadius: 5,
+                                              spreadRadius: 0.1,
                                             )
+                                          ],
                                         ),
-                                    ],
-                                  ),
-                                )
-                            ),
-                          );
-                        },
-                      );
-                    }
-                ),
+                                        height: !isTablet ? MediaQuery.of(context).size.width * 0.35 : orientation == Orientation.portrait ?
+                                        MediaQuery.of(context).size.width * 0.2 : MediaQuery.of(context).size.height * 0.3,
+                                        width: MediaQuery.of(context).size.width * 0.5,
+                                        child: Stack(
+                                          fit: StackFit.expand,
+                                          alignment: Alignment.center,
+                                          children: [
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: Image.network(
+                                                item['image'],
+                                                fit: BoxFit.fitWidth,
+                                                loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                                                  if (loadingProgress == null) {
+                                                    return child;
+                                                  } else {
+                                                    return Center(
+                                                      child: CircularProgressIndicator(
+                                                        value: loadingProgress.expectedTotalBytes != null
+                                                            ? loadingProgress.cumulativeBytesLoaded / (loadingProgress.expectedTotalBytes ?? 1)
+                                                            : null,
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                                errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                                                  return Container(
+                                                      color: Colors.transparent,
+                                                      child: Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center, // Centra los elementos verticalmente
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                          Flexible(
+                                                            child: Image.asset('assets/imgLog/notFound.jpg',
+                                                                fit: BoxFit.fill),),
+                                                          const Text('Imagen no disponible'),
+                                                        ],
+                                                      )
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            Visibility(
+                                              visible: selectedCategories.contains(item['id'].toString()) ? true : false,
+                                              child: Container(
+                                                padding: EdgeInsets.only(top: MediaQuery.of(context).size.width * 0.01, left: MediaQuery.of(context).size.width * 0.01),
+                                                alignment: Alignment.topLeft,
+                                                decoration: BoxDecoration(
+                                                    color: AppColors.blackColor.withOpacity(0.3),
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    border: Border.all(
+                                                        color: AppColors.primaryColor,
+                                                        width: MediaQuery.of(context).size.width * 0.01
+                                                    )
+                                                ),
+                                                child: const Icon(
+                                                  CupertinoIcons.check_mark_circled,
+                                                  color: AppColors.primaryColor,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                        "${item['category']}",
+                                        style: TextStyle(
+                                          color: AppColors.primaryColor,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.height * 0.017 : MediaQuery.of(context).size.width * 0.016,
+                                        )
+                                    ),
+                                  ],
+                                ),
+                              )
+                          ),
+                        );
+                      },
+                    );
+                  }
               ),
             ),
           ),

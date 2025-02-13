@@ -128,34 +128,6 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin, WidgetsB
     // TODO: implement initState
   }
 
-  /*void _initializeDeviceType() {
-    // Obtener el tamaño de la pantalla desde el binding
-    final window = WidgetsBinding.instance.window;
-    // Obtener el factor de pixel de la pantalla
-    final devicePixelRatio = window.devicePixelRatio;
-    // Obtener el tamaño en pixels lógicos
-    final physicalSize = window.physicalSize;
-    // Convertir a tamaño lógico
-    screenWidth = physicalSize.width / devicePixelRatio;
-    screenHeight = physicalSize.height / devicePixelRatio;
-    // Determinar la orientación
-    orientation = screenWidth! > screenHeight! ? Orientation.landscape : Orientation.portrait;
-    // Verificar si es tablet
-    setState(() {
-      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
-    });
-  }
-
-  bool isTabletDevice(double width, double height, Orientation deviceOrientation) {
-    if (deviceOrientation == Orientation.portrait) {
-      return height > DeviceThresholds.minTabletHeightPortrait &&
-          width > DeviceThresholds.minTabletWidth;
-    } else {
-      return height > DeviceThresholds.minTabletHeightLandscape &&
-          width > DeviceThresholds.minTabletWidthLandscape;
-    }
-  }*/
-
   var orientation = Orientation.portrait;
   bool isTablet = false;
   double? screenHeight;
@@ -167,9 +139,6 @@ class _SeekerState extends State<Seeker> with TickerProviderStateMixin, WidgetsB
     final mediaQuery = MediaQuery.of(context);
     screenWidth = mediaQuery.size.width;
     screenHeight = mediaQuery.size.height;
-    /*setState(() {
-      isTablet = isTabletDevice(screenWidth!, screenHeight!, orientation);
-    });*/
   }
 
   late DeviceInfo deviceInfo;

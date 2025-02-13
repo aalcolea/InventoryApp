@@ -2,14 +2,13 @@ import 'dart:io';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 import 'globalVar.dart';
 import 'helpers/services/auth_service.dart';
 import 'helpers/themes/colors.dart';
-import 'inventory/admin.dart';
 import 'inventory/listenerPrintService.dart';
 import 'inventory/print/printConnections.dart';
+import 'inventory/stock/addProd/ views/recieveProduct.dart';
 
 class navBar extends StatefulWidget {
   final void Function(bool) onShowBlur;
@@ -159,51 +158,53 @@ class _navBarState extends State<navBar> {
                                 ]
                             ),
                           ),
-                          /*InkWell(
-                            onTap: widget.currentScreen == 'inventario' ? Navigator.of(context).pop : (){
-                              Navigator.of(context).pushAndRemoveUntil(
-                                CupertinoPageRoute(
-                                  builder: (context) => adminInv(docLog: widget.isDoctorLog),
-                                ),
-                                    (Route<dynamic> route) => false,
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.only(left: 20),
-                              width: MediaQuery.of(context).size.width,
-                              height: widget.currentScreen == 'agenda' ? MediaQuery.of(context).size.height*0.06 : MediaQuery.of(context).size.height*0.07,
-                              alignment: Alignment.centerLeft,
-                              decoration: BoxDecoration(
-                                border: widget.currentScreen == 'agenda' ? const Border(left: BorderSide.none, bottom: BorderSide(color: AppColors3.primaryColor)) : Border.all(color: AppColors3.primaryColor),
-                                color: widget.currentScreen == 'agenda' ? Colors.transparent : AppColors3.primaryColor,
-                                boxShadow: widget.currentScreen == 'agenda' ? null : [
-                                  BoxShadow(
-                                    color: Colors.black54,
-                                    offset: Offset(0, MediaQuery.of(context).size.width * 0.001),
-                                    blurRadius: 5,
-                                  )
-                                ],
-                              ),
-                              child: Text(
-                                'Punto de venta',
-                                style: widget.currentScreen == 'agenda' ? TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: MediaQuery.of(context).size.width*0.05,
-                                    color: AppColors3.primaryColor
-                                ) : TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: MediaQuery.of(context).size.width*0.05,
-                                    color: AppColors3.whiteColor
-                                ),
-                              ),
-                            ),
-                          ),*/
-                          //    bool isBluetoothOn = await flutterBlue.isOn;
                           Divider(
                             thickness: 1.5,
                             color: AppColors3.primaryColor.withOpacity(0.3),
                             height: 5 ,
                           ),
+                          InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => RecieveProduct()),
+                                );
+                              },
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.only(
+                                    left: MediaQuery.of(context).size.width * 0.05,
+                                    top: MediaQuery.of(context).size.width * 0.025,
+                                    bottom: MediaQuery.of(context).size.width * 0.025,
+                                  ),
+                                  width: MediaQuery.of(context).size.width,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Alta de productos', style: !widget.isTablet ? TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: MediaQuery.of(context).size.width * 0.05,
+                                          color: AppColors3.primaryColor
+                                      ) : TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
+                                          color: AppColors3.primaryColor
+                                      ),),
+                                    ],
+                                  ),
+                                ),
+                                Divider(
+                                  thickness: 1.5,
+                                  indent: MediaQuery.of(context).size.width * 0.04,
+                                  endIndent: MediaQuery.of(context).size.width * 0.04,
+                                  color: AppColors3.primaryColor.withOpacity(0.3),
+                                  height: 5 ,
+                                ),
+                              ],
+                            )
+                          ),
+
                           Visibility(
                             visible: widget.currentScreen == 'inventario' ? true : false,
                             child: InkWell(

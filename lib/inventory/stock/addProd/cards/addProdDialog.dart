@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../../../themes/colors.dart';
 
-Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async {
+import '../../../themes/colors.dart';
+
+Future<Map<String, dynamic>?> showConfirmAddDialog(BuildContext context) async {
   bool isCardPayment = false;
-  bool shouldPrint = false;
   return await showDialog<Map<String, dynamic>>(
     context: context,
     barrierColor: Colors.transparent,
@@ -42,7 +42,7 @@ Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async 
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Confirmar venta',
+                            'Confirmar Alta',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: isLandscape
@@ -56,7 +56,7 @@ Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async 
                               vertical: screenHeight * 0.02,
                             ),
                             child: Text(
-                              '¿Seguro que quieres completar esta venta?',
+                              '¿Seguro que quieres dar de alta estos productos? El movimiento se registrará como pago a proveedor',
                               textAlign: TextAlign.start,
                               style: TextStyle(
                                 fontSize: isLandscape
@@ -91,29 +91,8 @@ Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async 
                                   ),
                                   value: isCardPayment,
                                   onChanged: (bool? value) {
-                                    print('object');
                                     setState(() {
                                       isCardPayment = value ?? false;
-                                    });
-                                  },
-                                ),
-                                CheckboxListTile(
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: screenWidth * 0.07,
-                                  ),
-                                  title: Text(
-                                    'Imprimir ticket',
-                                    style: TextStyle(
-                                      fontSize: isLandscape
-                                          ? screenWidth * 0.03
-                                          : screenWidth * 0.04,
-                                      color: AppColors.blackColor,
-                                    ),
-                                  ),
-                                  value: shouldPrint,
-                                  onChanged: (bool? value) {
-                                    setState(() {
-                                      shouldPrint = value ?? false;
                                     });
                                   },
                                 ),
@@ -158,7 +137,7 @@ Future<Map<String, dynamic>?> showConfirmSellDialog(BuildContext context) async 
                                   onPressed: () {
                                     Navigator.of(context).pop({
                                       'isCardPayment': isCardPayment,
-                                      'shouldPrint': shouldPrint,
+                                      'confirm': true,
                                     });
                                   },
                                   child: Container(

@@ -18,7 +18,6 @@ import 'package:inventory_app/inventory/stock/searchBar.dart';
 import 'package:inventory_app/inventory/stock/utils/listenerBlurr.dart';
 import 'package:provider/provider.dart';
 import 'package:soundpool/soundpool.dart';
-import '../deviceThresholds.dart';
 import '../helpers/utils/PopUpTabs/closeConfirm.dart';
 import '../navBar.dart';
 import 'deviceManager.dart';

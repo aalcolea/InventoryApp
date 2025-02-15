@@ -10,6 +10,8 @@ import 'helpers/themes/colors.dart';
 import 'inventory/admin.dart';
 import 'inventory/listenerPrintService.dart';
 import 'inventory/print/printConnections.dart';
+import 'inventory/stock/products/views/ordersHist.dart';
+import 'inventory/stock/products/views/provConfig.dart';
 
 class navBar extends StatefulWidget {
   final void Function(bool) onShowBlur;
@@ -201,6 +203,89 @@ class _navBarState extends State<navBar> {
                           //    bool isBluetoothOn = await flutterBlue.isOn;
                           Divider(
                             thickness: 1.5,
+                            color: AppColors3.primaryColor.withOpacity(0.3),
+                            height: 5,
+                          ),
+                          InkWell(
+                            splashColor: AppColors3.primaryColor.withOpacity(0.2),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                CupertinoPageRoute(
+                                  builder: (context) => ProvConfig(),
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: MediaQuery.of(context).size.width * 0.03,
+                                    bottom: MediaQuery.of(context).size.width * 0.03,
+                                    left: MediaQuery.of(context).size.width * 0.05,
+                                    right: MediaQuery.of(context).size.width * 0.03,
+                                  ),
+                                  child: Icon(
+                                    CupertinoIcons.cube_box_fill,
+                                    size: MediaQuery.of(context).size.width * 0.075,
+                                    color: AppColors3.primaryColorMoreStrong,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.01),
+                                  child: Text(
+                                    'Proveedores',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
+                                        color: AppColors3.primaryColor
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          InkWell(
+                            splashColor: AppColors3.primaryColor.withOpacity(0.2),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                CupertinoPageRoute(
+                                  builder: (context) => OrdersHist(),
+                                ),
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: MediaQuery.of(context).size.width * 0.03,
+                                    bottom: MediaQuery.of(context).size.width * 0.03,
+                                    left: MediaQuery.of(context).size.width * 0.05,
+                                    right: MediaQuery.of(context).size.width * 0.03,
+                                  ),
+                                  child: Icon(
+                                    Icons.sticky_note_2,
+                                    size: MediaQuery.of(context).size.width * 0.075,
+                                    color: AppColors3.primaryColorMoreStrong,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.01),
+                                  child: Text(
+                                    'Historial de pedidos',
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: orientation == Orientation.portrait ? MediaQuery.of(context).size.width * 0.05 : MediaQuery.of(context).size.height * 0.05,
+                                        color: AppColors3.primaryColor
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                          Divider(
+                            thickness: 1.5,
+                            indent: MediaQuery.of(context).size.width * 0.04,
+                            endIndent: MediaQuery.of(context).size.width * 0.04,
                             color: AppColors3.primaryColor.withOpacity(0.3),
                             height: 5 ,
                           ),
